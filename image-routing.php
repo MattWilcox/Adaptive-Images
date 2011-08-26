@@ -7,8 +7,8 @@
       NO NEW FEATURES
       I have re-branded Responsive-Images to "Adaptive-Images", firstly to help distinguish
       this project from the identically named project by Filament Group, and secondly
-      because it's a more appropriate name. This system activly adapts existing images as
-      well as "responding" to the visitors viewport to serve an apropriately sized version.
+      because it's a more appropriate name. This system actively adapts existing images as
+      well as "responding" to the visitors viewport to serve an appropriately sized version.
       
       NOTES
       The project is now available on GitHub for those who wish to track it there:

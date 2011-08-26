@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+  Options +FollowSymlinks
+  RewriteEngine On
+
+  # Responsive-Images -----------------------------------------------------------------------------------
+
+  # Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
+  # RewriteCond %{REQUEST_URI} !some-directory
+  # RewriteCond %{REQUEST_URI} !another-directory
+  
+  RewriteCond %{REQUEST_URI} !assets
+    
+  # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
+  # to image-routing.php so we can select appropriately sized versions
+  RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
+
+  # END Responsive-Images -------------------------------------------------------------------------------
+</IfModule>

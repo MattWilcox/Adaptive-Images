@@ -2,11 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
-    <script>
-      var device_width=screen.width;var device_height=screen.height;if(device_width>device_height){ri_width=device_width;}else{ri_width=device_height;}
-      document.cookie='resolution='+ri_width+'; expires=; path=/';
-    </script>
     
     <style>
       body {
@@ -23,24 +18,42 @@
   </head>
 
   <body>
-    <h1>Instructions</h1>
+    <h1>Adaptive-Images Instructions</h1>
+    <h2>Basic instructions</h2>
+    <p>Copy <code>adaptive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT, skip down to the advanced instructions.</p>
+    <p>Create a directory called <code>ai-cache</code> in the root of your site and give it write permissions (CHMOD 777).</p>
+    <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading, and before any images have been requested.</p>
+<pre><code>&lt;script&gt;var device_width=screen.width;var device_height=screen.height;if(device_width>device_height){ai_width=device_width;}else{ai_width=device_height;}
+document.cookie='resolution='+ai_width+'; expires=; path=/';&lt;/script&gt;</code></pre>
+    <p>That's it, you're done.</p>
+    
+    <h2>Advanced Instructions</h2>
+    <p>OK, you're here because you've already got a .htaccess file. I strongly advise you to duplicate that file so you can revert to it if things go pear-shaped.</p>
+    <p>Open your existing .htaccess file and edit the contents. You'll need to look and see if there is a section that begins with the following:</p>
+    <p><code>&lt;IfModule mod_rewrite.c&gt;</code></p>
+    <p>If there is, then you need to add the following lines into that block:</p>
+    
+<pre><code># Adaptive-Images -----------------------------------------------------------------------------------
 
-      <p>Copy <code>responsive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT. <a href="#htaccess">Do this instead</a></p>
-      <p>Create a directory called <code>responsive-cache</code> in the root of your site and give it write permissions (CHMOD 777).</p>
-      <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading and before any images have been requested.</p>
-<pre><code>&lt;script&gt;var device_width=screen.width;var device_height=screen.height;if(device_width>device_height){ri_width=device_width;}else{ri_width=device_height;}
-document.cookie='resolution='+ri_width+'; expires=; path=/';&lt;/script&gt;</code></pre>
-      <p>That's it, you're done.</p>
+# Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
+# RewriteCond %{REQUEST_URI} !some-directory
+# RewriteCond %{REQUEST_URI} !another-directory
 
-    <h2>Additional settings and configuration</h2>
+RewriteCond %{REQUEST_URI} !assets
 
-    <h3>.htaccess</h3>
-    <p id="htaccess">If you already have a .htaccess file DO NOT over-write it, instead open your existing .htaccess file and add the following to it:</p>
+# Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
+# to image-routing.php so we can select appropriately sized versions
+RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
+
+# END Adaptive-Images -------------------------------------------------------------------------------</code></pre>
+
+<p>If you don't have a code block then simply copy and paste the following into your file instead:</p>
+
 <pre><code>&lt;IfModule mod_rewrite.c&gt;
   Options +FollowSymlinks
   RewriteEngine On
 
-  # Responsive-Images -----------------------------------------------------------------------------------
+  # Adaptive-Images -----------------------------------------------------------------------------------
 
   # Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
   # RewriteCond %{REQUEST_URI} !some-directory
@@ -52,9 +65,13 @@ document.cookie='resolution='+ri_width+'; expires=; path=/';&lt;/script&gt;</cod
   # to image-routing.php so we can select appropriately sized versions
   RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
 
-  # END Responsive-Images -------------------------------------------------------------------------------
+  # END Adaptive-Images -------------------------------------------------------------------------------
 &lt;/IfModule&gt;</code></pre>
-    <p>Follow the instructions inside that code to specify any directories you don't want to use RI on.</p>
+
+    <h2>Additional settings and configuration</h2>
+    <h3>.htaccess</h3>
+    <p>Instructions are in the file as comments (any line that starts with a # is a comment, and doesn't actually do anything)</p>
+    <p>Follow the instructions inside that code to specify any directories you don't want to use Adaptive-Images on.</p>
     
     <h3>PHP</h3>
     <p>You can now open the php file and have a play with the settings that are in the CONFIG area. By default it looks like this:</p>
@@ -62,7 +79,7 @@ document.cookie='resolution='+ri_width+'; expires=; path=/';&lt;/script&gt;</cod
 <pre><code>/* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382,992,768,480,320); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "responsive-cache"; // where to store the generated re-sized images. This folder must be writable.
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)

@@ -1,7 +1,19 @@
 <?php
 /* FILE INFO ----------------------------------------------------------------------------------------------------------
-             http://responsive-images.com | Twitter: @responsiveimg
-
+             Homepage: http://adaptive-images.com | Twitter: @adaptiveimg
+             GitHub repository: https://github.com/MattWilcox/Adaptive-Images
+             
+    version 1.2.1 (2011/08/26) ------------------------------------------------------------
+      NO NEW FEATURES
+      I have re-branded Responsive-Images to "Adaptive-Images", firstly to help distinguish
+      this project from the identically named project by Filament Group, and secondly
+      because it's a more appropriate name. This system activly adapts existing images as
+      well as "responding" to the visitors viewport to serve an apropriately sized version.
+      
+      NOTES
+      The project is now available on GitHub for those who wish to track it there:
+      https://github.com/MattWilcox/Adaptive-Images
+      
     version 1.2 (2011/08/21) ------------------------------------------------------------
                                            Contributions by Fabian Beiner, with thanks :)
       NEW FEATURES
@@ -66,7 +78,7 @@
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382,992,768,480,320); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "responsive-cache"; // where to store the generated re-sized images. This folder must be writable.
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)

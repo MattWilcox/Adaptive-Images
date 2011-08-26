@@ -4,7 +4,7 @@
 
   # Responsive-Images -----------------------------------------------------------------------------------
 
-  # Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
+  # Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
   # RewriteCond %{REQUEST_URI} !some-directory
   # RewriteCond %{REQUEST_URI} !another-directory
   

@@ -2,7 +2,7 @@
   Options +FollowSymlinks
   RewriteEngine On
 
-  # Responsive-Images -----------------------------------------------------------------------------------
+  # Adaptive-Images -----------------------------------------------------------------------------------
 
   # Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
   # RewriteCond %{REQUEST_URI} !some-directory
@@ -14,5 +14,5 @@
   # to image-routing.php so we can select appropriately sized versions
   RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
 
-  # END Responsive-Images -------------------------------------------------------------------------------
+  # END Adaptive-Images -------------------------------------------------------------------------------
 </IfModule>

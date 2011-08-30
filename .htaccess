@@ -5,8 +5,8 @@
   # Adaptive-Images -----------------------------------------------------------------------------------
 
   # Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
-  # RewriteCond %{REQUEST_URI} !some-directory
-  # RewriteCond %{REQUEST_URI} !another-directory
+  # RewriteCond %{REQUEST_URI} !ignore-this-directory
+  # RewriteCond %{REQUEST_URI} !and-ignore-this-directory-too
   
   RewriteCond %{REQUEST_URI} !assets
     

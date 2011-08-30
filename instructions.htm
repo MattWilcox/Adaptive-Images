@@ -26,9 +26,10 @@
 <pre><code>&lt;script&gt;var device_width=screen.width;var device_height=screen.height;if(device_width>device_height){ai_width=device_width;}else{ai_width=device_height;}
 document.cookie='resolution='+ai_width+'; expires=; path=/';&lt;/script&gt;</code></pre>
     <p>That's it, you're done.</p>
+    <p>NOTE: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
     
-    <h2>Advanced Instructions</h2>
-    <p>OK, you're here because you've already got a .htaccess file. I strongly advise you to duplicate that file so you can revert to it if things go pear-shaped.</p>
+    <h2>You already have a .htaccess file</h2>
+    <p>I strongly advise you to duplicate that file so you can revert to it if things go pear-shaped.</p>
     <p>Open your existing .htaccess file and edit the contents. You'll need to look and see if there is a section that begins with the following:</p>
     <p><code>&lt;IfModule mod_rewrite.c&gt;</code></p>
     <p>If there is, then you need to add the following lines into that block:</p>
@@ -111,5 +112,30 @@ if (device_width > device_height) {
 /* set the client width in a cookie for the server to read */
 document.cookie = 'resolution='+ri_width+'; expires=; path=/'; // set or update the cookie
 &lt;/script&gt;</code></pre>
+
+<h2 id="alternate">Alternate method for those who can't rely on JavaScript</h2>
+
+<p>One of the weaknesses of the Adaptive Images process is its reliance on JavaScript to detect the visitors screen size, and set a cookie with that screen size inside it. The following is a solution for people who need the system to work without the use of JavaScript, but it does have a major caveat which is why this is not the default method, and why it is "unsupported" (I'm not going to troubleshoot problems you have with this method).</p>
+
+<h3>The alternative method</h3>
+<p>Do not use the JavaScript as explained above, but instead, ABOVE your normal CSS, add the following into the head:</p>
+<pre><code>&lt;style&gt;
+ @media only screen and (max-device-width: 479px) {
+   html { background-image:url(ai-cookie.php?maxwidth=479); } }
+ @media only screen and (min-device-width: 480px) and (max-device-width: 767px) {
+   html { background-image:url(ai-cookie.php?maxwidth=767); } }
+ @media only screen and (min-device-width: 768px) and (max-device-width: 991px) {
+   html { background-image:url(ai-cookie.php?maxwidth=991); } }
+ @media only screen and (min-device-width: 992px) and (max-device-width: 1381px) {
+   html { background-image:url(ai-cookie.php?maxwidth=1381); } }
+ @media only screen and (min-device-width: 1382px) {
+   html { background-image:url(ai-cookie.php?maxwidth=unknown); } }
+&lt;/style&gt;</code></pre>
+<p>If you use this method you will need to ensure the widths here match those in your image-routing.php file, you will also need to have the <code>ai-cookie.php</code> file in the root of your website (no one else needs this file).</p>
+
+<h3>The caveat</h3>
+<p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly.</p>
+<p>The reason is to do with how browsers load web pages. The first thing a browser does is load the HTML, in the order it's written - so for a normal AI install it loads the HTML and see's the embeded JavaScript, and immediately executes that JavaScript - which immediately writes the cookie. It then carries on loading the rest of the page in the order it finds it. Long story short - it means that when it finds an image tag and asks the server for it, it already has a cookie stored.</p>
+<p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. Which means no cookie is set. Which means the original full-resolution image is sent. But, only on that very first page load.</p>
   </body>
 </html>

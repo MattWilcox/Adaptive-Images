@@ -1,8 +1,20 @@
 <?php
 /* FILE INFO ----------------------------------------------------------------------------------------------------------
-             Homepage: http://adaptive-images.com | Twitter: @adaptiveimg
-             GitHub repository: https://github.com/MattWilcox/Adaptive-Images
+             http://responsive-images.com | Twitter: @responsiveimg
              
+    version 1.3 (2011/08/31) ------------------------------------------------------------
+      NEW FEATURES
+        * Added support for Mobile First philosophy (see CONFIG, $mobile_first)
+      
+      NOTES
+      When $mobile_first is set to TRUE it means the mobile sized version of the requested
+      image will be sent in the event that no cookie is set (likely because JavaScript is
+      unavailable). If FALSE, the original image is sent.
+                 
+    version 1.2.2 (2011/08/30) ------------------------------------------------------------
+      NEW FEATURES
+        * Unsupported no-javascript solution (see instructions.htm)
+        
     version 1.2.1 (2011/08/26) ------------------------------------------------------------
       NO NEW FEATURES
       I have re-branded Responsive-Images to "Adaptive-Images", firstly to help distinguish
@@ -77,12 +89,13 @@
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(1382,992,768,480,320); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
+$resolutions   = array(1382,992,768,480); // the resolution break-points to use (screen widths, in pixels)
+$cache_path    = "responsive-cache"; // where to store the generated re-sized images. This folder must be writable.
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$mobile_first  = TRUE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -147,9 +160,118 @@ if(!$_COOKIE["resolution"]){ // no cookie
     header("Status: 404 Not Found");
     exit();
   }
+  /* there isn't a cookie (likely no JS available) */
+  if($mobile_first !== TRUE) { // We want to send the original resolution image if JS is disabled
+    sendImage($document_root.$requested_uri,$mime_type,$browser_cache);
+  }
+  else { // We want to send the mobile resolution if JS is disabled
+    sort($resolutions); // make sure the supplied break-points are in ascending size order
+    $resolution = $resolutions[0]; // we only want the smallest supported break-point (the mobile resolution)
+    
+    if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // it exists cached at that size
+      sendImage($document_root."/$cache_path/$resolution/".$requested_uri,$mime_type,$browser_cache);
+    }
+    else { // it doesn't exist at that size cached
+      if($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
+        $cache_date  = filemtime($document_root."/".$cache_path."/".$resolution."/".$requested_uri);
+        $source_date = filemtime($document_root.$requested_uri);
 
-  // no cookie, but the requested image exists, so deliver that straight up
-  sendImage($document_root.$requested_uri,$mime_type,$browser_cache);
+        if($cache_date < $source_date) { // the source file has been replaced since the cache was generated
+          // Check the image dimensions
+          $source_image = $document_root.$requested_uri;
+          $dimensions   = GetImageSize($source_image);
+          $width        = $dimensions[0];
+          $height       = $dimensions[1];
+
+          // Do we need to downscale the image?
+          if($width <= $resolution) { // no, because the width of the source image is already less than the client width
+            sendImage($document_root.$requested_uri);
+          }
+
+          // We need to resize the source image to the width of the resolution breakpoint we're working with
+          $ratio      = $height/$width;
+          $new_width  = $resolution;
+          $new_height = ceil($new_width * $ratio);
+
+          switch ($extension){
+            case png:
+              $src = @ImageCreateFromPng($source_image); // original image
+            break;
+            case gif:
+              $src = @ImageCreateFromGif($source_image); // original image
+            break;
+            default:
+              $src = @ImageCreateFromJpeg($source_image); // original image
+            break;
+          }
+
+          $dst = ImageCreateTrueColor($new_width,$new_height); // re-sized image
+          ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+
+          // sharpen the image?
+          if($sharpen == TRUE) {
+            $intSharpness = findSharp($width, $new_width);
+            $arrMatrix = array(
+                array(-1, -2, -1),
+                array(-2, $intSharpness + 12, -2),
+                array(-1, -2, -1)
+            );
+            imageconvolution($dst, $arrMatrix, $intSharpness, 0);
+          }
+
+          // check the path directory exists and is writable
+          $directories = str_replace("/$requested_file","",$requested_uri); // get the directories only
+          $directories = substr($directories,1); // clean the string
+
+          if(!is_dir("$document_root/$cache_path/$resolution/$directories")){ // does the directory exist already?
+            if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) { // make the directory
+              // uh-oh, failed to make that directory
+              ImageDestroy($src); // clean-up after ourselves
+              ImageDestroy($dst); // clean-up after ourselves
+
+              /* notify the client by way of throwing a message in a bottle, as that's all we can do */
+              $im         = ImageCreateTrueColor(800, 200);
+              $text_color = ImageColorAllocate($im, 233, 14, 91);
+              ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
+              header("Pragma: public");
+              header("Cache-Control: maxage=".$browser_cache);
+              header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
+              header('Content-Type: image/jpeg');
+              ImageJpeg($im); ImageDestroy($im);
+              exit();
+            }
+          }
+
+          // save the new file in the appropriate path, and send a version to the browser
+          switch ($extension){
+            case png:
+              $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
+            break;
+            case gif:
+              $gotSaved = ImageGif($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
+            break;
+            default:
+              $gotSaved = ImageJpeg($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file", $jpg_quality);
+            break;
+          }
+
+          if(!$gotSaved) {
+            /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
+            $im         = ImageCreateTrueColor(800, 200);
+            $text_color = ImageColorAllocate($im, 233, 14, 91);
+            ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
+            header('Content-Type: image/jpeg');
+            ImageJpeg($im); ImageDestroy($im);
+            exit();
+          }
+          else { // we saved the image to cache, now deliver the image to the client
+            ImageDestroy($src); ImageDestroy($dst);
+            sendImage("$document_root/$cache_path/$resolution/$directories/$requested_file",$mime_type,$browser_cache);
+          }
+        }
+      } // end of if watch-cache
+    } // end it doesn't exist at the mobile size cached
+  }
 }
 
 $client_width = $_COOKIE["resolution"]; // store the cookie value in a variable

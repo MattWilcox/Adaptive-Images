@@ -2,7 +2,7 @@
 /* FILE INFO ----------------------------------------------------------------------------------------------------------
              http://responsive-images.com | Twitter: @responsiveimg
              
-    version 1.3 (2011/08/31) ------------------------------------------------------------
+    version 1.3 beta (2011/08/31) ------------------------------------------------------------
       NEW FEATURES
         * Added support for Mobile First philosophy (see CONFIG, $mobile_first)
       
@@ -95,7 +95,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = TRUE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
+$mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------

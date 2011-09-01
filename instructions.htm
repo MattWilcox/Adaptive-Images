@@ -85,7 +85,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = TRUE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
+$mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -95,7 +95,7 @@ $mobile_first  = TRUE; // If there's no cookie deliver the mobile version (if FA
   <p><code>$cache_path</code> If you don't like the cached images being written to that folder, you can put it somewhere else. Just put the path to the folder here and make sure you create it on the server.</p>
   <p><code>$sharpen</code> Will perform a subtle sharpening on the rescaled images. Usually this is fine, but you may want to turn it off if your server is very very busy.</p>
   <p><code>$watch_cache</code> If your server gets very busy it may help performance to turn this to FALSE. It will mean however that you will have to manually clear out the cache directory if you change a resource file</p>
-  <p><code>$mobile_first</code> Adhere to the Mobile First philosophy. If set to TRUE and no cookie is set Adaptive Images will send the mobile-resolution version of the requested image. If set to FALSE it will send the original resource.</p>
+  <p><code>$mobile_first</code> [BETA FEATURE] Adhere to the Mobile First philosophy. If set to TRUE and no cookie is set Adaptive Images will send the mobile-resolution version of the requested image. If set to FALSE it will send the original resource. There is a known problem with Firefox on a first visit to a site where $mobile_first is TRUE. It doesn't set the cookie fast enough, so the very first load sends the mobile size image. All page loads after are fine. Opera, Safari, and Chrome all work OK.</p>
   
   <h3>JavaScript</h3>
   <p>If you like, here's the long-hand version, so you can understand what the JS is doing. Don't use this one in your real site, though the code is doing the same thing:</p>

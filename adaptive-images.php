@@ -1,6 +1,6 @@
 <?php
 /* FILE INFO ----------------------------------------------------------------------------------------------------------
-             http://responsive-images.com | Twitter: @responsiveimg
+             http://adaptive-images.com | Twitter: @responsiveimg
              
     version 1.3 beta (2011/08/31) ------------------------------------------------------------
       NEW FEATURES
@@ -10,6 +10,10 @@
       When $mobile_first is set to TRUE it means the mobile sized version of the requested
       image will be sent in the event that no cookie is set (likely because JavaScript is
       unavailable). If FALSE, the original image is sent.
+      
+      There is a known problem with Firefox on a first visit to a site where $mobile_first
+      is TRUE. It doesn't set the cookie fast enough, so the very first load sends the mobile
+      size image. All page loads after are fine. Opera, Safari, and Chrome all work OK.
                  
     version 1.2.2 (2011/08/30) ------------------------------------------------------------
       NEW FEATURES

@@ -94,7 +94,7 @@
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382,992,768,480); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "responsive-cache"; // where to store the generated re-sized images. This folder must be writable.
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)

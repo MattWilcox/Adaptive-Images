@@ -36,15 +36,15 @@ document.cookie='resolution='+ai_width+'; expires=; path=/';&lt;/script&gt;</cod
     
 <pre><code># Adaptive-Images -----------------------------------------------------------------------------------
 
-# Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
+# Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
 # RewriteCond %{REQUEST_URI} !some-directory
 # RewriteCond %{REQUEST_URI} !another-directory
 
 RewriteCond %{REQUEST_URI} !assets
 
 # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
-# to image-routing.php so we can select appropriately sized versions
-RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
+# to adaptive-images.php so we can select appropriately sized versions
+RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
 
 # END Adaptive-Images -------------------------------------------------------------------------------</code></pre>
 
@@ -56,15 +56,15 @@ RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
 
   # Adaptive-Images -----------------------------------------------------------------------------------
 
-  # Add any directories you wish to omit from the Responsive-Images process on a new line, as follows:
+  # Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
   # RewriteCond %{REQUEST_URI} !some-directory
   # RewriteCond %{REQUEST_URI} !another-directory
 
   RewriteCond %{REQUEST_URI} !assets
 
   # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
-  # to image-routing.php so we can select appropriately sized versions
-  RewriteRule \.(jpg|jpeg|gif|png) image-routing.php
+  # to adaptive-images.php so we can select appropriately sized versions
+  RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
 
   # END Adaptive-Images -------------------------------------------------------------------------------
 &lt;/IfModule&gt;</code></pre>
@@ -133,7 +133,7 @@ document.cookie = 'resolution='+ri_width+'; expires=; path=/'; // set or update 
  @media only screen and (min-device-width: 1382px) {
    html { background-image:url(ai-cookie.php?maxwidth=unknown); } }
 &lt;/style&gt;</code></pre>
-<p>If you use this method you will need to ensure the widths here match those in your image-routing.php file, you will also need to have the <code>ai-cookie.php</code> file in the root of your website (no one else needs this file).</p>
+<p>If you use this method you will need to ensure the widths here match those in your adaptive-images.php file, you will also need to have the <code>ai-cookie.php</code> file in the root of your website (no one else needs this file).</p>
 
 <h3>The caveat</h3>
 <p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly.</p>

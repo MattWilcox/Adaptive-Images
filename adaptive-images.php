@@ -93,7 +93,7 @@
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(1382,992,768,480); // the resolution break-points to use (screen widths, in pixels)
+$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
@@ -112,7 +112,7 @@ $requested_file = basename($requested_uri);
 $extension      = strtolower(pathinfo($requested_file, PATHINFO_EXTENSION)); // filename extension of the passed uri
 
 /* set up some variables we'll use later */
-switch ($extension){ // sort out MIME types for different file types
+switch ($extension) { // sort out MIME types for different file types
   case png:
     $mime_type = "Content-Type: image/png";
   break;
@@ -125,7 +125,7 @@ switch ($extension){ // sort out MIME types for different file types
 }
 
 /* helper function: Send headers and returns an image. */
-function sendImage($filename,$mime_type,$browser_cache) {
+function sendImage($filename, $mime_type, $browser_cache) {
     header($mime_type);
     header("Pragma: public");
     header("Cache-Control: maxage=".$browser_cache);
@@ -146,9 +146,9 @@ function findSharp($intOrig, $intFinal) {
 }
 
 /* check that PHP has the GD library available to use for image re-sizing */
-if(!extension_loaded('gd')){ // it's not loaded
+if (!extension_loaded('gd')) { // it's not loaded
   if (!dl('gd.so')) { // and we can't load it either
-    if (!file_exists($document_root.$requested_uri)){ // and the requested file doesn't exist
+    if (!file_exists($document_root.$requested_uri)) { // and the requested file doesn't exist
       header("Status: 404 Not Found");
       exit();
     }
@@ -159,28 +159,28 @@ if(!extension_loaded('gd')){ // it's not loaded
 }
 
 /* Check to see if a cookie exists */
-if(!$_COOKIE["resolution"]){ // no cookie
-  if (!file_exists($document_root.$requested_uri)){ // and the requested file doesn't exist either
+if (!$_COOKIE["resolution"]) { // no cookie
+  if (!file_exists($document_root.$requested_uri)) { // and the requested file doesn't exist either
     header("Status: 404 Not Found");
     exit();
   }
   /* there isn't a cookie (likely no JS available) */
-  if($mobile_first !== TRUE) { // We want to send the original resolution image if JS is disabled
+  if ($mobile_first !== TRUE) { // We want to send the original resolution image if JS is disabled
     sendImage($document_root.$requested_uri,$mime_type,$browser_cache);
   }
   else { // We want to send the mobile resolution if JS is disabled
     sort($resolutions); // make sure the supplied break-points are in ascending size order
     $resolution = $resolutions[0]; // we only want the smallest supported break-point (the mobile resolution)
     
-    if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // it exists cached at that size
+    if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // it exists cached at that size
       sendImage($document_root."/$cache_path/$resolution/".$requested_uri,$mime_type,$browser_cache);
     }
     else { // it doesn't exist at that size cached
-      if($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
+      if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
         $cache_date  = filemtime($document_root."/".$cache_path."/".$resolution."/".$requested_uri);
         $source_date = filemtime($document_root.$requested_uri);
 
-        if($cache_date < $source_date) { // the source file has been replaced since the cache was generated
+        if ($cache_date < $source_date) { // the source file has been replaced since the cache was generated
           // Check the image dimensions
           $source_image = $document_root.$requested_uri;
           $dimensions   = GetImageSize($source_image);
@@ -188,7 +188,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
           $height       = $dimensions[1];
 
           // Do we need to downscale the image?
-          if($width <= $resolution) { // no, because the width of the source image is already less than the client width
+          if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
             sendImage($document_root.$requested_uri);
           }
 
@@ -197,7 +197,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
           $new_width  = $resolution;
           $new_height = ceil($new_width * $ratio);
 
-          switch ($extension){
+          switch ($extension) {
             case png:
               $src = @ImageCreateFromPng($source_image); // original image
             break;
@@ -213,7 +213,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
           ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
 
           // sharpen the image?
-          if($sharpen == TRUE) {
+          if ($sharpen == TRUE) {
             $intSharpness = findSharp($width, $new_width);
             $arrMatrix = array(
                 array(-1, -2, -1),
@@ -227,7 +227,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
           $directories = str_replace("/$requested_file","",$requested_uri); // get the directories only
           $directories = substr($directories,1); // clean the string
 
-          if(!is_dir("$document_root/$cache_path/$resolution/$directories")){ // does the directory exist already?
+          if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { // does the directory exist already?
             if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) { // make the directory
               // uh-oh, failed to make that directory
               ImageDestroy($src); // clean-up after ourselves
@@ -247,7 +247,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
           }
 
           // save the new file in the appropriate path, and send a version to the browser
-          switch ($extension){
+          switch ($extension) {
             case png:
               $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
             break;
@@ -259,7 +259,7 @@ if(!$_COOKIE["resolution"]){ // no cookie
             break;
           }
 
-          if(!$gotSaved) {
+          if (!$gotSaved) {
             /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
             $im         = ImageCreateTrueColor(800, 200);
             $text_color = ImageColorAllocate($im, 233, 14, 91);
@@ -281,11 +281,11 @@ if(!$_COOKIE["resolution"]){ // no cookie
 $client_width = $_COOKIE["resolution"]; // store the cookie value in a variable
 
 /* check the cookie value makes sense */
-if (!is_numeric($client_width)){ // nope, that's not a numeric value
+if (!is_numeric($client_width)) { // nope, that's not a numeric value
   setcookie("resolution", "", time() -1); // delete the mangled cookie
 
   /* now check to see if the requested file exists */
-  if (!file_exists($document_root.$requested_uri)){ // the requested file doesn't exist
+  if (!file_exists($document_root.$requested_uri)) { // the requested file doesn't exist
     header("Status: 404 Not Found");
     exit();
   }
@@ -299,19 +299,19 @@ rsort($resolutions); // make sure the supplied break-points are in reverse size 
 $resolution = $resolutions[0]; // by default it's the largest supported break-point
 
 foreach ($resolutions as $break_point) { // filter down
-   if($client_width <= $break_point) {
+   if ($client_width <= $break_point) {
      $resolution = $break_point;
    }
 }
 
 /* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
-if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // it exists cached at that size
+if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // it exists cached at that size
 
-  if($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
+  if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
     $cache_date  = filemtime($document_root."/".$cache_path."/".$resolution."/".$requested_uri);
     $source_date = filemtime($document_root.$requested_uri);
 
-    if($cache_date < $source_date) { // the source file has been replaced since the cache was generated
+    if ($cache_date < $source_date) { // the source file has been replaced since the cache was generated
       // Check the image dimensions
       $source_image = $document_root.$requested_uri;
       $dimensions   = GetImageSize($source_image);
@@ -319,7 +319,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
       $height       = $dimensions[1];
 
       // Do we need to downscale the image?
-      if($width <= $resolution) { // no, because the width of the source image is already less than the client width
+      if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
         sendImage($document_root.$requested_uri);
       }
 
@@ -328,7 +328,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
       $new_width  = $resolution;
       $new_height = ceil($new_width * $ratio);
 
-      switch ($extension){
+      switch ($extension) {
         case png:
           $src = @ImageCreateFromPng($source_image); // original image
         break;
@@ -344,7 +344,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
       ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
 
       // sharpen the image?
-      if($sharpen == TRUE) {
+      if ($sharpen == TRUE) {
         $intSharpness = findSharp($width, $new_width);
         $arrMatrix = array(
             array(-1, -2, -1),
@@ -358,7 +358,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
       $directories = str_replace("/$requested_file","",$requested_uri); // get the directories only
       $directories = substr($directories,1); // clean the string
 
-      if(!is_dir("$document_root/$cache_path/$resolution/$directories")){ // does the directory exist already?
+      if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { // does the directory exist already?
         if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) { // make the directory
           // uh-oh, failed to make that directory
           ImageDestroy($src); // clean-up after ourselves
@@ -378,7 +378,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
       }
 
       // save the new file in the appropriate path, and send a version to the browser
-      switch ($extension){
+      switch ($extension) {
         case png:
           $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
         break;
@@ -390,19 +390,21 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
         break;
       }
 
-      if(!$gotSaved) {
+      if (!$gotSaved) {
         /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
         $im         = ImageCreateTrueColor(800, 200);
         $text_color = ImageColorAllocate($im, 233, 14, 91);
         ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
         header('Content-Type: image/jpeg');
-        ImageJpeg($im); ImageDestroy($im);
+        ImageJpeg($im);
+        ImageDestroy($im);
         exit();
       }
-      else { // we saved the image to cache, now deliver the image to the client
-        ImageDestroy($src); ImageDestroy($dst);
-        sendImage("$document_root/$cache_path/$resolution/$directories/$requested_file",$mime_type,$browser_cache);
-      }
+
+      // we saved the image to cache, now deliver the image to the client
+      ImageDestroy($src);
+      ImageDestroy($dst);
+      sendImage("$document_root/$cache_path/$resolution/$directories/$requested_file",$mime_type,$browser_cache);
     }
   } // end of if watch-cache
 
@@ -410,7 +412,7 @@ if(file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { // 
 }
 
 /* It doesn't exist as a cached file, check the default image folder to see if it exists there */
-if (!file_exists($document_root.$requested_uri)){ // the file doesn't exist at the original size either
+if (!file_exists($document_root.$requested_uri)) { // the file doesn't exist at the original size either
   header("Status: 404 Not Found");
   exit();
 }
@@ -424,7 +426,7 @@ $width        = $dimensions[0];
 $height       = $dimensions[1];
 
 // Do we need to downscale the image?
-if($width <= $resolution) { // no, because the width of the source image is already less than the client width
+if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
   sendImage($document_root.$requested_uri,$mime_type,$browser_cache);
 }
 
@@ -433,7 +435,7 @@ $ratio      = $height/$width;
 $new_width  = $resolution;
 $new_height = ceil($new_width * $ratio);
 
-switch ($extension){
+switch ($extension) {
   case png:
     $src = @ImageCreateFromPng($source_image); // original image
   break;
@@ -449,7 +451,7 @@ $dst = ImageCreateTrueColor($new_width,$new_height); // re-sized image
 ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
 
 // sharpen the image?
-if($sharpen == TRUE) {
+if ($sharpen == TRUE) {
   $intSharpness = findSharp($width, $new_width);
   $arrMatrix = array(
       array(-1, -2, -1),
@@ -463,7 +465,7 @@ if($sharpen == TRUE) {
 $directories = str_replace("/$requested_file","",$requested_uri); // get the directories only
 $directories = substr($directories,1); // clean the string
 
-if(!is_dir("$document_root/$cache_path/$resolution/$directories")){ // does the directory exist already?
+if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { // does the directory exist already?
   if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) { // make the directory
     // uh-oh, failed to make that directory
     ImageDestroy($src); // clean-up after ourselves
@@ -483,7 +485,7 @@ if(!is_dir("$document_root/$cache_path/$resolution/$directories")){ // does the 
 }
 
 // save the new file in the appropriate path, and send a version to the browser
-switch ($extension){
+switch ($extension) {
   case png:
     $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
   break;
@@ -495,17 +497,18 @@ switch ($extension){
   break;
 }
 
-if(!$gotSaved) {
+if (!$gotSaved) {
   /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
   $im         = ImageCreateTrueColor(800, 200);
   $text_color = ImageColorAllocate($im, 233, 14, 91);
   ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
   header('Content-Type: image/jpeg');
-  ImageJpeg($im); ImageDestroy($im);
+  ImageJpeg($im);
+  ImageDestroy($im);
   exit();
 }
-else { // we saved the image to cache, now deliver the image to the client
-  ImageDestroy($src); ImageDestroy($dst);
-  sendImage("$document_root/$cache_path/$resolution/$directories/$requested_file",$mime_type,$browser_cache);
-}
-?>
+
+// we saved the image to cache, now deliver the image to the client
+ImageDestroy($src);
+ImageDestroy($dst);
+sendImage("$document_root/$cache_path/$resolution/$directories/$requested_file",$mime_type,$browser_cache);

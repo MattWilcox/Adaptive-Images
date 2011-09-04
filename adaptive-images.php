@@ -1,95 +1,11 @@
 <?php
-/* FILE INFO ----------------------------------------------------------------------------------------------------------
-             http://adaptive-images.com | Twitter: @responsiveimg
-             
-    version 1.3 beta (2011/08/31) ------------------------------------------------------------
-      NEW FEATURES
-        * Added support for Mobile First philosophy (see CONFIG, $mobile_first)
-      
-      NOTES
-      When $mobile_first is set to TRUE it means the mobile sized version of the requested
-      image will be sent in the event that no cookie is set (likely because JavaScript is
-      unavailable). If FALSE, the original image is sent.
-      
-      There is a known problem with Firefox on a first visit to a site where $mobile_first
-      is TRUE. It doesn't set the cookie fast enough, so the very first load sends the mobile
-      size image. All page loads after are fine. Opera, Safari, and Chrome all work OK.
-                 
-    version 1.2.2 (2011/08/30) ------------------------------------------------------------
-      NEW FEATURES
-        * Unsupported no-javascript solution (see instructions.htm)
-        
-    version 1.2.1 (2011/08/26) ------------------------------------------------------------
-      NO NEW FEATURES
-      I have re-branded Responsive-Images to "Adaptive-Images", firstly to help distinguish
-      this project from the identically named project by Filament Group, and secondly
-      because it's a more appropriate name. This system actively adapts existing images as
-      well as "responding" to the visitors viewport to serve an appropriately sized version.
-      
-      NOTES
-      The project is now available on GitHub for those who wish to track it there:
-      https://github.com/MattWilcox/Adaptive-Images
-      
-    version 1.2 (2011/08/21) ------------------------------------------------------------
-                                           Contributions by Fabian Beiner, with thanks :)
-      NEW FEATURES
-        * Support for PNG and GIF images
-        * Added ability to sharpen re-scaled images (see CONFIG, $sharpen)
-      BUG FIXES
-        * Better extension detection (.jpeg was failing)
-        * First-run Firefox bug fixed. The JS must be in-line, in the <head>!
-            DETAILS:
-            Firefox (and potentially others, but not observed anywhere else) was requesting
-            the first <img> before it loaded the external javascript file, even when in the
-            <head>. This caused Firefox to load the full-resolution image the very first 
-            time the site was visited. All subsequent page views were fine.
-      OTHER IMPROVEMENTS
-        * Cleaned up the .htaccess file and included clear comments on use
-        * Vastly improved instructions and examples on the downloadable zip
-        * Since 1.1 fixed issues with browser cache, default cache time now set to 7 days
-        * Refactored PHP code
-
-    version 1.1 (2011/08/16) ------------------------------------------------------------
-
-      NEW FEATURES
-        * Re-engineered the size detection methodology.
-
-          Now detects maximum possible screen size of the device instead of the current
-          window size. This removes the problem of visitors with small windows caching
-          small images to the browser, then upon maximising the browser having too small
-          images for the new screen size. It also simplifies the JS back down to its
-          original "just dump the size into a cookie" functionality.
-
-          This update removes the following:
-
-          * All JS config options
-
-    version 1.0 (2011/08/09) ------------------------------------------------------------
-
-      NEW FEATURES
-        * Headers sent along with the image, for browser side caching (see CONFIG, $browser_cache)
-        * JavaScript responds to window re-sizes, requests higher res images if required
-      BUG FIXES
-        * Fixed the MIME type for JPG's (image/jpeg not image/jpg)
-
-    beta 2 (2011/08/04) -----------------------------------------------------------------
-
-      NEW FEATURES
-        * Added the ability to control generated image quality (see CONFIG, $jpg_quality)
-        * Added configurable resolution breakpoints (see CONFIG, $resolutions)
-        * Optional Cache checking - defaults to on (see CONFIG, $watch_cache)
-      BUG FIXES
-        * The PHP now checks that the GD extension is loaded before proceeding
-        * Clarified comments further
-
-    beta 1 (2011/08/01) -----------------------------------------------------------------
-
-      NEW FEATURES
-        * Initial public release
-        * Commented the PHP for public consumption
-        * Added user-configurable cache directory (see CONFIG, $cache_path)
-      BUG FIXES
-        * Didn't generate downscaled images due to typo
+/* PROJECT INFO --------------------------------------------------------------------------------------------------------
+                Homepage: http://adaptive-images.com
+                GitHub:   https://github.com/MattWilcox/Adaptive-Images
+                Twitter:  @responsiveimg
+                
+                LEGAL:
+                Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
@@ -99,7 +15,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
+$mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALSE, sends largest $resolutions version)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -148,6 +64,38 @@ function findSharp($intOrig, $intFinal) {
   $intC     = .00047337278106508946;
   $intRes   = $intA + $intB * $intFinal + $intC * $intFinal * $intFinal;
   return max(round($intRes), 0);
+}
+
+/* Browser engine detect 
+   NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
+         website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
+         allow them to have $mobile_first set to TRUE, or else they get the mobile version on the first load of the site */
+function browser_detect(){
+  $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
+
+  // Identify the browser engine. Check Opera and Safari first in case of spoof. Let Google Chrome be identified as Safari.
+  if (preg_match('/opera/', $userAgent)) {
+    $name = 'opera'; }
+  elseif (preg_match('/webkit/', $userAgent)) {
+    $name = 'webkit'; }
+  elseif (preg_match('/msie/', $userAgent)) {
+    $name = 'msie'; }
+  elseif (preg_match('/mozilla/', $userAgent) && !preg_match('/compatible/', $userAgent)) {
+    $name = 'gecko'; }
+  else { $name = 'unrecognized'; }
+
+  // What version?
+  if (preg_match('/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/', $userAgent, $matches)) {
+    $version = $matches[1]; }
+  else {
+    $version = 'unknown'; }
+
+  return $name;
+}
+
+/* Do we need to switch mobile first off? */
+if(browser_detect() == "gecko"){
+  $mobile_first = FALSE;
 }
 
 /* refreshes the cached image if it's outdated */

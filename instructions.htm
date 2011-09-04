@@ -84,7 +84,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if FALSE, delivers original resource)
+$mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALSE, sends largest $resolutions version)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -94,18 +94,8 @@ $mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if F
   <p><code>$cache_path</code> If you don't like the cached images being written to that folder, you can put it somewhere else. Just put the path to the folder here and make sure you create it on the server.</p>
   <p><code>$sharpen</code> Will perform a subtle sharpening on the rescaled images. Usually this is fine, but you may want to turn it off if your server is very very busy.</p>
   <p><code>$watch_cache</code> If your server gets very busy it may help performance to turn this to FALSE. It will mean however that you will have to manually clear out the cache directory if you change a resource file</p>
-  <p><code>$mobile_first</code> [BETA FEATURE] Adhere to the Mobile First philosophy. If set to TRUE and no cookie is set Adaptive Images will send the mobile-resolution version of the requested image. If set to FALSE it will send the original resource. There is a known problem with Firefox on a first visit to a site where $mobile_first is TRUE. It doesn't set the cookie fast enough, so the very first load sends the mobile size image. All page loads after are fine. Opera, Safari, and Chrome all work OK.</p>
+  <p><code>$mobile_first</code> If set to TRUE and no cookie is set, Adaptive Images will send the mobile-resolution version of the requested image. If set to FALSE it will send the largest version set in the $resolutions array.</p>
   
-  <h3>JavaScript</h3>
-  <p>If you like, here's the long-hand version, so you can understand what the JS is doing. Don't use this one in your real site, though the code is doing the same thing:</p>
-<pre><code>&lt;script&gt;
-/* we want to get the image for the largest window size the device can support, not just the current window size */
-var ai_width = Math.max(screen.width, screen.height);
-
-/* set the client width in a cookie for the server to read */
-document.cookie = 'resolution='+ai_width+'; expires=; path=/'; // set or update the cookie
-&lt;/script&gt;</code></pre>
-
 <h2 id="alternate">Alternate method for those who can't rely on JavaScript</h2>
 
 <p>One of the weaknesses of the Adaptive Images process is its reliance on JavaScript to detect the visitors screen size, and set a cookie with that screen size inside it. The following is a solution for people who need the system to work without the use of JavaScript, but it does have a major caveat which is why this is not the default method, and why it is "unsupported" (I'm not going to troubleshoot problems you have with this method).</p>
@@ -127,8 +117,8 @@ document.cookie = 'resolution='+ai_width+'; expires=; path=/'; // set or update 
 <p>If you use this method you will need to ensure the widths here match those in your adaptive-images.php file, you will also need to have the <code>ai-cookie.php</code> file in the root of your website (no one else needs this file).</p>
 
 <h3>The caveat</h3>
-<p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly.</p>
-<p>The reason is to do with how browsers load web pages. The first thing a browser does is load the HTML, in the order it's written - so for a normal AI install it loads the HTML and see's the embeded JavaScript, and immediately executes that JavaScript - which immediately writes the cookie. It then carries on loading the rest of the page in the order it finds it. Long story short - it means that when it finds an image tag and asks the server for it, it already has a cookie stored.</p>
-<p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. Which means no cookie is set. Which means the original full-resolution image is sent. But, only on that very first page load.</p>
+<p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly. What that means is that, really, this solution is only viable if you've got $mobile_first set to FALSE. Otherwise, the majority of people who visit your site will experience images too small for their computer on the very first visit.</p>
+<p>The reason is to do with how browsers load web pages. The first thing a browser does is load the HTML, in the order it's written - so for a normal AI install it loads the HTML and see's the embeded JavaScript and immediately executes that JavaScript - which writes the cookie. It then carries on loading the rest of the page in the order it finds it. Long story short - it means that when it finds an image tag and asks the server for it, it already has a cookie stored.</p>
+<p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. Which means no cookie is set. Which means that if $mobile_first is TRUE the mobile sized image is sent. But, only on that very first page load.</p>
   </body>
 </html>

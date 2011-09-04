@@ -12,7 +12,7 @@
     
   # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
   # to adaptive-images.php so we can select appropriately sized versions
-  RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
+  RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
 
   # END Adaptive-Images -------------------------------------------------------------------------------
 </IfModule>

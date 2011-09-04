@@ -23,8 +23,7 @@
     <p>Copy <code>adaptive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT, skip down to the advanced instructions.</p>
     <p>Create a directory called <code>ai-cache</code> in the root of your site and give it write permissions (CHMOD 777).</p>
     <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading, and before any images have been requested.</p>
-<pre><code>&lt;script&gt;var device_width=screen.width;var device_height=screen.height;if(device_width>device_height){ai_width=device_width;}else{ai_width=device_height;}
-document.cookie='resolution='+ai_width+'; expires=; path=/';&lt;/script&gt;</code></pre>
+<pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+'; expires=; path=/';&lt;/script&gt;</code></pre>
     <p>That's it, you're done.</p>
     <p>NOTE: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
     
@@ -44,7 +43,7 @@ RewriteCond %{REQUEST_URI} !assets
 
 # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
 # to adaptive-images.php so we can select appropriately sized versions
-RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
+RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
 
 # END Adaptive-Images -------------------------------------------------------------------------------</code></pre>
 
@@ -64,7 +63,7 @@ RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
 
   # Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
   # to adaptive-images.php so we can select appropriately sized versions
-  RewriteRule \.(jpg|jpeg|gif|png) adaptive-images.php
+  RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
 
   # END Adaptive-Images -------------------------------------------------------------------------------
 &lt;/IfModule&gt;</code></pre>
@@ -101,18 +100,10 @@ $mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if F
   <p>If you like, here's the long-hand version, so you can understand what the JS is doing. Don't use this one in your real site, though the code is doing the same thing:</p>
 <pre><code>&lt;script&gt;
 /* we want to get the image for the largest window size the device can support, not just the current window size */
-var device_width  = screen.width; // get screen width
-var device_height = screen.height; // get the screen height
-
-/* if this is a device that can rotate, we need the longest edge, not just the current width */
-if (device_width > device_height) {
-  ri_width = device_width;
-} else {
-  ri_width = device_height;
-}
+var ai_width = Math.max(screen.width, screen.height);
 
 /* set the client width in a cookie for the server to read */
-document.cookie = 'resolution='+ri_width+'; expires=; path=/'; // set or update the cookie
+document.cookie = 'resolution='+ai_width+'; expires=; path=/'; // set or update the cookie
 &lt;/script&gt;</code></pre>
 
 <h2 id="alternate">Alternate method for those who can't rely on JavaScript</h2>

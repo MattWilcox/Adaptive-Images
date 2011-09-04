@@ -150,21 +150,23 @@ function findSharp($intOrig, $intFinal) {
   return max(round($intRes), 0);
 }
 
+/* refreshes the cached image if it's outdated */
 function refreshCache($source_file, $cache_file, $resolution) {
-  // not modified
-  if (filemtime($cache_file) >= filemtime($source_file)) {
-    return $cache_file;
-  }
-
   if (file_exists($cache_file)) {
+    // not modified
+    if (filemtime($cache_file) >= filemtime($source_file)) {
+      return $cache_file;
+    }
+
+    // modified, clear it
     unlink($cache_file);
   }
-
-  return generateImage($source_file, $resolution);
+  return generateImage($source_file, $cache_file, $resolution);
 }
 
-function generateImage($source_file, $resolution) {
-  global $requested_file, $requested_uri, $sharpen, $cache_path, $jpg_quality;
+/* generates the given cache file for the given source file with the given resolution */
+function generateImage($source_file, $cache_file, $resolution) {
+  global $sharpen, $jpg_quality;
 
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -210,43 +212,43 @@ function generateImage($source_file, $resolution) {
     imageconvolution($dst, $arrMatrix, $intSharpness, 0);
   }
 
-  // check the path directory exists and is writable
-  $directories = str_replace("/$requested_file","",$requested_uri); // get the directories only
-  $directories = substr($directories,1); // clean the string
+  $cache_dir = dirname($cache_file);
 
   // does the directory exist already?
-  if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { 
-    if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) {
+  if (!is_dir($cache_dir)) { 
+    if (!mkdir($cache_dir, 0777, true)) {
       // check again if it really doesn't exist to protect against race conditions
-      if (!is_dir("$document_root/$cache_path/$resolution/$directories")) {
+      if (!is_dir($cache_dir)) {
         // uh-oh, failed to make that directory
         ImageDestroy($dst);
-
-        /* notify the client by way of throwing a message in a bottle, as that's all we can do */
-        sendErrorImage("Failed to create directory: $document_root/$cache_path/$resolution/$directories");
+        sendErrorImage("Failed to create directory: $cache_dir");
       }
     }
+  }
+
+  if (!is_writable($cache_dir)) {
+    sendErrorImage("The cache directory is not writable: $cache_dir");
   }
 
   // save the new file in the appropriate path, and send a version to the browser
   switch ($extension) {
     case 'png':
-      $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
+      $gotSaved = ImagePng($dst, $cache_file);
     break;
     case 'gif':
-      $gotSaved = ImageGif($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
+      $gotSaved = ImageGif($dst, $cache_file);
     break;
     default:
-      $gotSaved = ImageJpeg($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file", $jpg_quality);
+      $gotSaved = ImageJpeg($dst, $cache_file, $jpg_quality);
     break;
   }
   ImageDestroy($dst);
 
-  if (!$gotSaved && !file_exists("$document_root/$cache_path/$resolution/$directories/$requested_file")) {
-    sendErrorImage("Failed to create image: $document_root/$cache_path/$resolution/$directories/$requested_file");
+  if (!$gotSaved && !file_exists($cache_file)) {
+    sendErrorImage("Failed to create image: $cache_file");
   }
 
-  return "$document_root/$cache_path/$resolution/$directories/$requested_file";
+  return $cache_file;
 }
 
 // check if the file exists at all
@@ -308,5 +310,5 @@ if (file_exists($cache_file)) { // it exists cached at that size
 }
 
 /* It exists as a source file, so lets work with that: */
-$file = generateImage($source_file, $resolution);
+$file = generateImage($source_file, $cache_file, $resolution);
 sendImage($file, $browser_cache);

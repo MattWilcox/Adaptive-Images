@@ -113,10 +113,10 @@ $extension      = strtolower(pathinfo($requested_file, PATHINFO_EXTENSION)); // 
 
 /* set up some variables we'll use later */
 switch ($extension) { // sort out MIME types for different file types
-  case png:
+  case 'png':
     $mime_type = "Content-Type: image/png";
   break;
-  case gif:
+  case 'gif':
     $mime_type = "Content-Type: image/gif";
   break;
   default:
@@ -198,10 +198,10 @@ if (!$_COOKIE["resolution"]) { // no cookie
           $new_height = ceil($new_width * $ratio);
 
           switch ($extension) {
-            case png:
+            case 'png':
               $src = @ImageCreateFromPng($source_image); // original image
             break;
-            case gif:
+            case 'gif':
               $src = @ImageCreateFromGif($source_image); // original image
             break;
             default:
@@ -248,10 +248,10 @@ if (!$_COOKIE["resolution"]) { // no cookie
 
           // save the new file in the appropriate path, and send a version to the browser
           switch ($extension) {
-            case png:
+            case 'png':
               $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
             break;
-            case gif:
+            case 'gif':
               $gotSaved = ImageGif($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
             break;
             default:
@@ -329,10 +329,10 @@ if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { //
       $new_height = ceil($new_width * $ratio);
 
       switch ($extension) {
-        case png:
+        case 'png':
           $src = @ImageCreateFromPng($source_image); // original image
         break;
-        case gif:
+        case 'gif':
           $src = @ImageCreateFromGif($source_image); // original image
         break;
         default:
@@ -379,10 +379,10 @@ if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { //
 
       // save the new file in the appropriate path, and send a version to the browser
       switch ($extension) {
-        case png:
+        case 'png':
           $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
         break;
-        case gif:
+        case 'gif':
           $gotSaved = ImageGif($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
         break;
         default:
@@ -436,10 +436,10 @@ $new_width  = $resolution;
 $new_height = ceil($new_width * $ratio);
 
 switch ($extension) {
-  case png:
+  case 'png':
     $src = @ImageCreateFromPng($source_image); // original image
   break;
-  case gif:
+  case 'gif':
     $src = @ImageCreateFromGif($source_image); // original image
   break;
   default:
@@ -486,10 +486,10 @@ if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { // does th
 
 // save the new file in the appropriate path, and send a version to the browser
 switch ($extension) {
-  case png:
+  case 'png':
     $gotSaved = ImagePng($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
   break;
-  case gif:
+  case 'gif':
     $gotSaved = ImageGif($dst, "$document_root/$cache_path/$resolution/$directories/$requested_file");
   break;
   default:

@@ -107,7 +107,7 @@ $mobile_first  = FALSE; // If there's no cookie deliver the mobile version (if F
 
 /* get all of the required data from the HTTP request */
 $document_root  = $_SERVER['DOCUMENT_ROOT'];
-$requested_uri  = (stripos($_SERVER['REQUEST_URI'], '?')) ? substr($_SERVER['REQUEST_URI'], 0, stripos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI'];
+$requested_uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $extension      = strtolower(pathinfo($requested_file, PATHINFO_EXTENSION)); // filename extension of the passed uri
 

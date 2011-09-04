@@ -287,15 +287,8 @@ if (isset($_COOKIE['resolution'])) {
 
 /* No resolution was found (no cookie or invalid cookie) */
 if (!$resolution) {
-  // We send the lowest resolution for mobile-first approach
-  if ($mobile_first === TRUE) {
-    sort($resolutions); // make sure the supplied break-points are in ascending size order
-    $resolution = $resolutions[0]; // we only want the smallest supported break-point (the mobile resolution)
-  }
-  // We want to send the original resolution image if JS is disabled
-  else {
-    sendImage($source_file, $browser_cache);
-  }
+  // We send the lowest resolution for mobile-first approach, and highest otherwise
+  $resolution = $mobile_first ? min($resolutions) : max($resolutions);
 }
 
 $cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;

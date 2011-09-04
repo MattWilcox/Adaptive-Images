@@ -127,8 +127,7 @@ switch ($extension) { // sort out MIME types for different file types
 /* helper function: Send headers and returns an image. */
 function sendImage($filename, $mime_type, $browser_cache) {
     header($mime_type);
-    header("Pragma: public");
-    header("Cache-Control: maxage=".$browser_cache);
+    header("Cache-Control: public, max-age=".$browser_cache);
     header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
     header('Content-Length: '.filesize($filename));
     readfile($filename);

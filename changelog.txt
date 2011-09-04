@@ -6,7 +6,7 @@ version 1.3 (2011/09/04) -------------------------------------------------------
   BUG FIXES
     * Fixed typo which incorrectly set browser cache
   OTHER IMPROVEMENTS
-    * When $mobile_first is FLASE now sends highest configured size instead of original
+    * When $mobile_first is FALSE now sends highest configured size instead of original
     * Refactored the PHP to be more robust and efficient
     * Simplified the JS to a single line and fixed pollution of the global namespace
     * Made the .htaccess rule more robust and accurate
@@ -16,7 +16,7 @@ version 1.3 (2011/09/04) -------------------------------------------------------
     intentional, and required due to a defect in Firefox's behaviour. It does not set
     cookies fast enough, and therefor on the first visit to a site would load the
     mobile sized image even if JS was enabled. Therefor, AI will not honour the
-    $mobile_first setting on Firefox based browsers with JavaScript disabled.
+    $mobile_first setting on Firefox based browsers that have JavaScript disabled.
 
 version 1.3 beta (2011/08/31) ---------------------------------------------------------
 

@@ -134,6 +134,19 @@ function sendImage($filename, $mime_type, $browser_cache) {
     exit();
 }
 
+/* helper function: Create and send an image with an error message. */
+function sendErrorImage($message) {
+    $im         = ImageCreateTrueColor(800, 200);
+    $text_color = ImageColorAllocate($im, 233, 14, 91);
+    ImageString($im, 1, 5, 5, $message, $text_color);
+    header("Cache-Control: no-cache");
+    header('Expires: '.gmdate('D, d M Y H:i:s', time()-1000).' GMT');
+    header('Content-Type: image/jpeg');
+    ImageJpeg($im);
+    ImageDestroy($im);
+    exit();
+}
+
 /* sharpen images function */
 function findSharp($intOrig, $intFinal) {
     $intFinal = $intFinal * (750.0 / $intOrig);
@@ -234,15 +247,7 @@ if (!isset($_COOKIE["resolution"]) || !$_COOKIE["resolution"]) { // no cookie
           ImageDestroy($dst); // clean-up after ourselves
 
           /* notify the client by way of throwing a message in a bottle, as that's all we can do */
-          $im         = ImageCreateTrueColor(800, 200);
-          $text_color = ImageColorAllocate($im, 233, 14, 91);
-          ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-          header("Cache-Control: public, max-age=".$browser_cache);
-          header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
-          header('Content-Type: image/jpeg');
-          ImageJpeg($im);
-          ImageDestroy($im);
-          exit();
+          sendErrorImage("Failed to create directories: $document_root/$cache_path/$resolution/$directories");
         }
       }
 
@@ -261,13 +266,7 @@ if (!isset($_COOKIE["resolution"]) || !$_COOKIE["resolution"]) { // no cookie
 
       if (!$gotSaved) {
         /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
-        $im         = ImageCreateTrueColor(800, 200);
-        $text_color = ImageColorAllocate($im, 233, 14, 91);
-        ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-        header('Content-Type: image/jpeg');
-        ImageJpeg($im);
-        ImageDestroy($im);
-        exit();
+        sendErrorImage("Failed to save image: $document_root/$cache_path/$resolution/$directories/$requested_file");
       }
       // we saved the image to cache, now deliver the image to the client
       ImageDestroy($src);
@@ -364,16 +363,7 @@ if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { //
           ImageDestroy($dst); // clean-up after ourselves
 
           /* notify the client by way of throwing a message in a bottle, as that's all we can do */
-          $im         = ImageCreateTrueColor(800, 200);
-          $text_color = ImageColorAllocate($im, 233, 14, 91);
-          ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-          header("Pragma: public");
-          header("Cache-Control: maxage=".$browser_cache);
-          header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
-          header('Content-Type: image/jpeg');
-          ImageJpeg($im);
-          ImageDestroy($im);
-          exit();
+          sendErrorImage("Failed to create directories: $document_root/$cache_path/$resolution/$directories");
         }
       }
 
@@ -392,13 +382,7 @@ if (file_exists($document_root."/$cache_path/$resolution/".$requested_uri)) { //
 
       if (!$gotSaved) {
         /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
-        $im         = ImageCreateTrueColor(800, 200);
-        $text_color = ImageColorAllocate($im, 233, 14, 91);
-        ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-        header('Content-Type: image/jpeg');
-        ImageJpeg($im);
-        ImageDestroy($im);
-        exit();
+        sendErrorImage("Failed to create image: $document_root/$cache_path/$resolution/$directories/$requested_file");
       }
 
       // we saved the image to cache, now deliver the image to the client
@@ -472,15 +456,7 @@ if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { // does th
     ImageDestroy($dst); // clean-up after ourselves
 
     /* notify the client by way of throwing a message in a bottle, as that's all we can do */
-    $im         = ImageCreateTrueColor(800, 200);
-    $text_color = ImageColorAllocate($im, 233, 14, 91);
-    ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-    header("Pragma: public");
-    header("Cache-Control: maxage=".$browser_cache);
-    header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
-    header('Content-Type: image/jpeg');
-    ImageJpeg($im); ImageDestroy($im);
-    exit();
+    sendErrorImage("Failed to create directories: $document_root/$cache_path/$resolution/$directories");
   }
 }
 
@@ -499,13 +475,7 @@ switch ($extension) {
 
 if (!$gotSaved) {
   /* Couldn't save image, notify the client by way of throwing a message in a bottle, as that's all we can do */
-  $im         = ImageCreateTrueColor(800, 200);
-  $text_color = ImageColorAllocate($im, 233, 14, 91);
-  ImageString($im, 1, 5, 5,  "Failed to create directories: $document_root/$cache_path/$resolution/$directories", $text_color);
-  header('Content-Type: image/jpeg');
-  ImageJpeg($im);
-  ImageDestroy($im);
-  exit();
+  sendErrorImage("Failed to create image: $document_root/$cache_path/$resolution/$directories/$requested_file");
 }
 
 // we saved the image to cache, now deliver the image to the client

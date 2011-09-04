@@ -146,7 +146,7 @@ function findSharp($intOrig, $intFinal) {
 
 /* check that PHP has the GD library available to use for image re-sizing */
 if (!extension_loaded('gd')) { // it's not loaded
-  if (!dl('gd.so')) { // and we can't load it either
+  if (!function_exists('dl') || !dl('gd.so')) { // and we can't load it either
     if (!file_exists($document_root.$requested_uri)) { // and the requested file doesn't exist
       header("Status: 404 Not Found");
       exit();

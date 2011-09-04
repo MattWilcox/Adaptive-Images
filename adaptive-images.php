@@ -156,6 +156,10 @@ function refreshCache($source_file, $cache_file, $resolution) {
     return $cache_file;
   }
 
+  if (file_exists($cache_file)) {
+    unlink($cache_file);
+  }
+
   return generateImage($source_file, $resolution);
 }
 
@@ -213,11 +217,14 @@ function generateImage($source_file, $resolution) {
   // does the directory exist already?
   if (!is_dir("$document_root/$cache_path/$resolution/$directories")) { 
     if (!mkdir("$document_root/$cache_path/$resolution/$directories", 0777, true)) {
-      // uh-oh, failed to make that directory
-      ImageDestroy($dst);
+      // check again if it really doesn't exist to protect against race conditions
+      if (!is_dir("$document_root/$cache_path/$resolution/$directories")) {
+        // uh-oh, failed to make that directory
+        ImageDestroy($dst);
 
-      /* notify the client by way of throwing a message in a bottle, as that's all we can do */
-      sendErrorImage("Failed to create directory: $document_root/$cache_path/$resolution/$directories");
+        /* notify the client by way of throwing a message in a bottle, as that's all we can do */
+        sendErrorImage("Failed to create directory: $document_root/$cache_path/$resolution/$directories");
+      }
     }
   }
 
@@ -235,7 +242,7 @@ function generateImage($source_file, $resolution) {
   }
   ImageDestroy($dst);
 
-  if (!$gotSaved) {
+  if (!$gotSaved && !file_exists("$document_root/$cache_path/$resolution/$directories/$requested_file")) {
     sendErrorImage("Failed to create image: $document_root/$cache_path/$resolution/$directories/$requested_file");
   }
 

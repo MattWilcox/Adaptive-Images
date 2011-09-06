@@ -7,7 +7,7 @@ h2. Benefits
 * Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.
 * Will work on your existing site, as it requires no changes to your mark-up.
 * Is device agnostic (it simply detects the size of the visitors screen)
-* IS CMS agnostic (it manages its own image re-sizing, and will work on any CMS or even on flat HTML pages)
+* Is CMS agnostic (it manages its own image re-sizing, and will work on any CMS or even on flat HTML pages)
 * Is entirely autmatic. Once added to your site, you need do no further work.
 * Highly configurable
 ** Set the resolutions you want to become adaptive (usually the same as the ones in your CSS @media queries)
@@ -16,3 +16,7 @@ h2. Benefits
 ** Configure directories to ignore (protect certain directories so AI is not applied to images within them)
 
 Find out more, and view examples at "http://adaptive-images.com":http://adaptive-images.com
+
+h2. Legal
+
+Adaptive Images by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/

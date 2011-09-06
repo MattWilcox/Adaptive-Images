@@ -145,7 +145,14 @@ function generateImage($source_file, $cache_file, $resolution) {
     break;
   }
 
-  $dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+	$dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+
+	if($extension=='png'){
+		imagealphablending($dst, false);
+		imagesavealpha($dst,true);
+		$transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+		imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
+	}
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
   ImageDestroy($src);
 

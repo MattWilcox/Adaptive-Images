@@ -1,3 +1,10 @@
+version 1.3.1 (2011/09/06) ------------------------------------------------------------
+                                                                 Thanks to Emilio Bravo
+  
+  BUG FIXES
+    * PNGs now maintain their alpha transparency when scaled down (previously got
+      black backgrounds where transparency should be)
+    
 version 1.3 (2011/09/04) --------------------------------------------------------------
                                                           Huge thanks to Jordi Boggiano
   

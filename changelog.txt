@@ -1,3 +1,14 @@
+version 1.3.2 (2011/09/06) ------------------------------------------------------------
+                                                                    Thanks to Oncle Tom
+
+  BUG FIXES
+    * Internet Explorer was not correctly setting the cookie, and thus breaking badly
+    * Fixed a possible Cookie Injection, and optimised ai-cookie.php
+
+  NOTES
+    In testing it seems that Firefox is now behaving properly and setting the cookie
+    in time. Thus, I've re-instated support for $mobile_first = TRUE on that browser
+
 version 1.3.1 (2011/09/06) ------------------------------------------------------------
                                                                  Thanks to Emilio Bravo
   

@@ -93,10 +93,7 @@ function browser_detect(){
   return $name;
 }
 
-/* Do we need to switch mobile first off?
-   NOTE: Internet Explorer doesn't set the cookie fast enough and on the first request acts as though no cookie was set
-         For this reason we disable mobile-first under IE otherwise the majority of desktop users would see a bad result
-         on the first page load */
+/* Do we need to switch mobile first off? */
 if(browser_detect() == "msie"){
   $mobile_first = FALSE;
 }

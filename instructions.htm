@@ -23,7 +23,7 @@
     <p>Copy <code>adaptive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT, skip down to the advanced instructions.</p>
     <p>Create a directory called <code>ai-cache</code> in the root of your site and give it write permissions (CHMOD 777).</p>
     <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading, and before any images have been requested.</p>
-<pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+'; expires=; path=/';&lt;/script&gt;</code></pre>
+<pre><code>&lt;script&gt;document.cookie='resolution='+(Math.max(screen.width,screen.height)*("devicePixelRatio" in window ? devicePixelRatio : 1))+'; expires=; path=/';&lt;/script&gt;</code></pre>
     <p>That's it, you're done.</p>
     <p>NOTE: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
     

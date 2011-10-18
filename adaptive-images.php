@@ -1,5 +1,8 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
+                Version: 1.3.3
+                Changelog: http://adaptive-images.com/changelog.txt
+
                 Homepage: http://adaptive-images.com
                 GitHub:   https://github.com/MattWilcox/Adaptive-Images
                 Twitter:  @responsiveimg
@@ -36,7 +39,7 @@ function sendImage($filename, $browser_cache) {
   } else {
     header("Content-Type: image/jpeg");
   }
-  header("Cache-Control: public, max-age=".$browser_cache);
+  header("Cache-Control: private, max-age=".$browser_cache);
   header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
   header('Content-Length: '.filesize($filename));
   readfile($filename);
@@ -48,7 +51,7 @@ function sendErrorImage($message) {
   $im         = ImageCreateTrueColor(800, 200);
   $text_color = ImageColorAllocate($im, 233, 14, 91);
   ImageString($im, 1, 5, 5, $message, $text_color);
-  header("Cache-Control: no-cache");
+  header("Cache-Control: no-store");
   header('Expires: '.gmdate('D, d M Y H:i:s', time()-1000).' GMT');
   header('Content-Type: image/jpeg');
   ImageJpeg($im);
@@ -94,7 +97,8 @@ function browser_detect(){
 }
 
 /* Do we need to switch mobile first off? */
-if(browser_detect() == "msie"){
+if(browser_detect() == "msie" ||
+   browser_detect() == "gecko") {
   $mobile_first = FALSE;
 }
 

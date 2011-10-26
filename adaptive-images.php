@@ -26,8 +26,8 @@ $mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALS
 
 /* get all of the required data from the HTTP request */
 $document_root  = $_SERVER['DOCUMENT_ROOT'];
-$requested_uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$requested_file = basename($requested_uri);
+$requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+$requested_file = basename(urldecode($requested_uri));
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
 

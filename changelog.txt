@@ -1,3 +1,16 @@
+version 1.3.5 (2011/11/10) ------------------------------------------------------------
+  
+  NEW FEATURE
+    * To work around browser issues with unreliable cookie setting speed
+      Adaptive Images now also checks the user agent string.
+      
+      If a desktop environment is detected, $mobile_first is automatically
+      over-ridden to "FALSE". If not Adaptive Images will obey the configured
+      value.
+      
+      This is a safety fallback and requires testing before I revert the
+      default $mobile_first configured value to TRUE.
+
 version 1.3.4 (2011/11/10) ------------------------------------------------------------
   
   BUG FIXES

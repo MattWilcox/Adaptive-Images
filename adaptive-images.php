@@ -72,33 +72,21 @@ function findSharp($intOrig, $intFinal) {
 /* Browser engine detect 
    NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
          website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
-         allow them to have $mobile_first set to TRUE, or else they get the mobile version on the first load of the site */
+         allow desktop browsers to have $mobile_first = TRUE (which we don't want anyway) */
 function browser_detect(){
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
 
-  // Identify the browser engine. Check Opera and Safari first in case of spoof. Let Google Chrome be identified as Safari.
-  if (preg_match('/opera/', $userAgent)) {
-    $name = 'opera'; }
-  elseif (preg_match('/webkit/', $userAgent)) {
-    $name = 'webkit'; }
-  elseif (preg_match('/msie/', $userAgent)) {
-    $name = 'msie'; }
-  elseif (preg_match('/mozilla/', $userAgent) && !preg_match('/compatible/', $userAgent)) {
-    $name = 'gecko'; }
-  else { $name = 'unrecognized'; }
-
-  // What version?
-  if (preg_match('/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/', $userAgent, $matches)) {
-    $version = $matches[1]; }
-  else {
-    $version = 'unknown'; }
-
-  return $name;
+  // Identify the OS platform. Match only desktop OSs
+  if (
+      preg_match('/Macintosh/', $userAgent) ||
+      preg_match('/Windows NT/', $userAgent)
+     ) {
+    return TRUE;
+  }
 }
 
 /* Do we need to switch mobile first off? */
-if(browser_detect() == "msie" ||
-   browser_detect() == "gecko") {
+if(browser_detect()){
   $mobile_first = FALSE;
 }
 

@@ -1,3 +1,15 @@
+version 1.3.4 (2011/11/10) ------------------------------------------------------------
+  
+  BUG FIXES
+    * The sharpening function broke on libraries not compiled with the bundled version
+      of PHP. It now tests the imageconvolution function is available and gracefully
+      handles cases where it isn't.
+  
+  NOTES
+    * Set $mobile_first to default to FALSE. Browsers are inconsistent with their
+      ability to set cookies before requesting <img>s. For more information visit
+      http://blog.yoav.ws/2011/09/Preloaders-cookies-and-race-conditions
+      
 version 1.3.3 (2011/10/18) ------------------------------------------------------------
 
   BUG FIXES

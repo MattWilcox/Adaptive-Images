@@ -18,7 +18,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALSE, sends largest $resolutions version)
+$mobile_first  = FALSE; // If there's no cookie sends the largest $resolutions version (if TRUE, sends smallest)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -161,12 +161,13 @@ function generateImage($source_file, $cache_file, $resolution) {
   ImageDestroy($src);
 
   // sharpen the image?
-  if ($sharpen == TRUE) {
+  // NOTE: requires PHP compiled with the bundled version of GD (see http://php.net/manual/en/function.imageconvolution.php)
+  if($sharpen == TRUE && function_exists('imageconvolution')) {
     $intSharpness = findSharp($width, $new_width);
     $arrMatrix = array(
-        array(-1, -2, -1),
-        array(-2, $intSharpness + 12, -2),
-        array(-1, -2, -1)
+      array(-1, -2, -1),
+      array(-2, $intSharpness + 12, -2),
+      array(-1, -2, -1)
     );
     imageconvolution($dst, $arrMatrix, $intSharpness, 0);
   }

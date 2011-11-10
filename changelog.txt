@@ -1,9 +1,14 @@
 version 1.3.4 (2011/11/10) ------------------------------------------------------------
   
   BUG FIXES
+    * URLs are now allowed to have spaces and other encoded characters in them
     * The sharpening function broke on libraries not compiled with the bundled version
-      of PHP. It now tests the imageconvolution function is available and gracefully
-      handles cases where it isn't.
+      of PHP/GD. Adaptive Images now tests the imageconvolution function is available
+      and gracefully handles cases where it isn't.
+
+  NEW FEATURE
+    * Instructions to take advantage of high-density displays like Apple's iPhone4
+      are now included. Just use the alternative JavaScript snippet.
   
   NOTES
     * Set $mobile_first to default to FALSE. Browsers are inconsistent with their

@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-                Version: 1.3.3
+                Version: 1.3.4
                 Changelog: http://adaptive-images.com/changelog.txt
 
                 Homepage: http://adaptive-images.com

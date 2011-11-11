@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-                Version: 1.3.4
+                Version: 1.3.6
                 Changelog: http://adaptive-images.com/changelog.txt
 
                 Homepage: http://adaptive-images.com
@@ -18,7 +18,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = FALSE; // If there's no cookie sends the largest $resolutions version (if TRUE, sends smallest)
+$mobile_first  = FALSE; // If there's no cookie, FALSE sends the largest $resolutions version (TRUE sends smallest)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -79,7 +79,8 @@ function browser_detect(){
   // Identify the OS platform. Match only desktop OSs
   if (
       preg_match('/Macintosh/', $userAgent) ||
-      preg_match('/Windows NT/', $userAgent)
+      preg_match('/Windows NT/', $userAgent) ||
+      preg_match('/X11/', $userAgent)
      ) {
     return TRUE;
   }

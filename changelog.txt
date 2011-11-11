@@ -1,3 +1,9 @@
+version 1.3.6 (2011/11/11) ------------------------------------------------------------
+  
+  NOTES
+    * Added Linux desktop detection to the $mobile_first check routine (see previous
+      changelog details)
+
 version 1.3.5 (2011/11/10) ------------------------------------------------------------
   
   NEW FEATURE

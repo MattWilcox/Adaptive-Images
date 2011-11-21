@@ -18,7 +18,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = FALSE; // If there's no cookie, FALSE sends the largest $resolutions version (TRUE sends smallest)
+$mobile_first  = TRUE; // If there's no cookie FALSE sends the largest $resolutions version (TRUE sends smallest)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -30,6 +30,28 @@ $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
+
+/* Browser engine detect 
+   NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
+         website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
+         allow desktop browsers to have $mobile_first = TRUE (which we don't want anyway) */
+function browser_detect() {
+  $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
+
+  // Identify the OS platform. Match only desktop OSs
+  if (
+      strpos($userAgent,'macintosh') ||
+      strpos($userAgent,'windows nt') ||
+      strpos($userAgent,'x11')
+     ) {
+      return TRUE;
+  }
+}
+
+/* Do we need to switch mobile first off? */
+if(browser_detect()){
+  $mobile_first = FALSE;
+}
 
 /* helper function: Send headers and returns an image. */
 function sendImage($filename, $browser_cache) {
@@ -67,28 +89,6 @@ function findSharp($intOrig, $intFinal) {
   $intC     = .00047337278106508946;
   $intRes   = $intA + $intB * $intFinal + $intC * $intFinal * $intFinal;
   return max(round($intRes), 0);
-}
-
-/* Browser engine detect 
-   NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
-         website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
-         allow desktop browsers to have $mobile_first = TRUE (which we don't want anyway) */
-function browser_detect(){
-  $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
-
-  // Identify the OS platform. Match only desktop OSs
-  if (
-      preg_match('/Macintosh/', $userAgent) ||
-      preg_match('/Windows NT/', $userAgent) ||
-      preg_match('/X11/', $userAgent)
-     ) {
-    return TRUE;
-  }
-}
-
-/* Do we need to switch mobile first off? */
-if(browser_detect()){
-  $mobile_first = FALSE;
 }
 
 /* refreshes the cached image if it's outdated */

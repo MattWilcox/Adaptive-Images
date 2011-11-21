@@ -1,3 +1,19 @@
+version 1.3.7 (2011/11/21) ------------------------------------------------------------
+
+  BUG FIX
+    * A stupid mistake was causing the browser detect to always return false.
+      This has been fixed.
+
+      With this update Adaptive Images now detects if a user is running on a desktop OS
+      and switches $mobile_first to FALSE in that case. This means that if no cookie is
+      set and $mobile_first is TRUE the following will happen:
+
+      On a mobile phone, the mobile sized image will be delivered.
+      On a desktop, the highest resolution configured will be delivered.
+
+      If a cookie is set, Adaptive Images will use the cookie value to determine the
+      correct size image to send.
+
 version 1.3.6 (2011/11/11) ------------------------------------------------------------
   
   NOTES

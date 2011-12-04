@@ -29,6 +29,7 @@
        It will send higher-resolution images to such devices - be aware this will mean slower downloads for users.</p>
     <pre><code>&lt;script&gt;document.cookie='resolution='+(Math.max(screen.width,screen.height)*("devicePixelRatio" in window ? devicePixelRatio : 1))+'; path=/';&lt;/script&gt;</code></pre>
     <p>NOTE 2: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
+    <p>NOTE 3: If you are extra paranoid about security you can have the ai-cache directory sit outside of your web-root so it's not publicly accessible. Just set the paths properly in the .htaccess file and the .php file.</p>
     
     <h2>You already have a .htaccess file</h2>
     <p>I strongly advise you to duplicate that file so you can revert to it if things go pear-shaped.</p>

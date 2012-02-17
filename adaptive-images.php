@@ -35,21 +35,14 @@ $resolution     = FALSE;
    NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
          website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
          allow desktop browsers to have $mobile_first = TRUE (which we don't want anyway) */
-function browser_detect() {
+function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
 
-  // Identify the OS platform. Match only desktop OSs
-  if (
-      strpos($userAgent,'macintosh') ||
-      strpos($userAgent,'windows nt') ||
-      strpos($userAgent,'x11')
-     ) {
-      return TRUE;
-  }
+  return strpos($userAgent, 'mobile');
 }
 
 /* Do we need to switch mobile first off? */
-if(browser_detect()){
+if(!is_mobile()){
   $mobile_first = FALSE;
 }
 

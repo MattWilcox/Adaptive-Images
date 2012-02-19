@@ -1,3 +1,31 @@
+version 1.4 (2012/02/19) --------------------------------------------------------------
+
+  ENHANCEMENT
+    * Auto-creates the cache folder with the correct permissions.
+      No need to manually create the ai-cache folder any more, AI does it for you.
+
+  BUG FIX
+    * Fixed an incorrect permission on created files, they're now 755 not 777.
+
+version 1.3.9 (2012/02/17) ------------------------------------------------------------
+                                                                         Thanks to Gerv
+
+  ENHANCEMENT
+    * Better detection of mobile device in the event cookies are not available.
+      
+      If cookies are unavailable AI resorts to basic UA sniffing.
+
+      Previously AI assumed all devices are mobile and searched the UA string for a
+      desktop OS. If found it overrode $mobile_first. However, this meant tablet
+      devices got mobile sized images as their OS is not a desktop OS.
+
+      Now switched to assume the device is a desktop, but AI searches the UA string for
+      'mobile' to switch to mobile first. All current mobile browsers behave in this
+      way, meaning mobiles still get mobile resolution, but tablets and desktop get
+      the largest configured resolution.
+
+    * Removed $mobile_first as it is no longer needed (see above)
+
 version 1.3.8 (2012/01/24) ------------------------------------------------------------
 
   BUG FIX

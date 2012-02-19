@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-                Version: 1.3.8
+                Version: 1.4
                 Changelog: http://adaptive-images.com/changelog.txt
 
                 Homepage: http://adaptive-images.com
@@ -13,12 +13,11 @@
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = TRUE; // If there's no cookie FALSE sends the largest $resolutions version (TRUE sends smallest)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -31,19 +30,28 @@ $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
 
-/* Browser engine detect 
-   NOTE: only required to work around a bug where some browsers can't set the cookie fast enough on the first visit to the
-         website. Such browsers therefor act as though no cookie was set on the very first visit. This means we can't
-         allow desktop browsers to have $mobile_first = TRUE (which we don't want anyway) */
+/* Mobile detection 
+   NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
-
   return strpos($userAgent, 'mobile');
 }
 
-/* Do we need to switch mobile first off? */
+/* Does the UA string indicate this is a mobile? */
 if(!is_mobile()){
-  $mobile_first = FALSE;
+  $is_mobile = FALSE;
+} else {
+  $is_mobile = TRUE;
+}
+
+// does the $cache_path directory exist already?
+if (!is_dir("$document_root/$cache_path")) { // no
+  if (!mkdir("$document_root/$cache_path", 0755, true)) { // so make it
+    if (!is_dir("$document_root/$cache_path")) { // check again to protect against race conditions
+      // uh-oh, failed to make that directory
+      sendErrorImage("Failed to create cache directory: $document_root/$cache_path");
+    }
+  }
 }
 
 /* helper function: Send headers and returns an image. */
@@ -158,7 +166,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 
   // does the directory exist already?
   if (!is_dir($cache_dir)) { 
-    if (!mkdir($cache_dir, 0777, true)) {
+    if (!mkdir($cache_dir, 0755, true)) {
       // check again if it really doesn't exist to protect against race conditions
       if (!is_dir($cache_dir)) {
         // uh-oh, failed to make that directory
@@ -230,7 +238,7 @@ if (isset($_COOKIE['resolution'])) {
 /* No resolution was found (no cookie or invalid cookie) */
 if (!$resolution) {
   // We send the lowest resolution for mobile-first approach, and highest otherwise
-  $resolution = $mobile_first ? min($resolutions) : max($resolutions);
+  $resolution = $is_mobile ? min($resolutions) : max($resolutions);
 }
 
 /* if the requested URL starts with a slash, remove the slash */

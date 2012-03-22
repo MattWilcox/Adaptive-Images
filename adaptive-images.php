@@ -18,6 +18,7 @@ $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$debug_mode = TRUE; // Write new Image dimentions into the stored image
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -148,6 +149,12 @@ function generateImage($source_file, $cache_file, $resolution) {
 		imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
 	}
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+  if($debug_mode){
+  	// write a textstring with the dimensions
+	$color = imagecolorallocate($dst, 249, 4, 4); // ugly red 
+  	imagestring( $dst, 5, 5, 5, $new_width." / ".$new_height,$color);
+  }
+  
   ImageDestroy($src);
 
   // sharpen the image?

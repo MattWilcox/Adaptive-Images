@@ -56,17 +56,43 @@ if (!is_dir("$document_root/$cache_path")) { // no
 
 /* helper function: Send headers and returns an image. */
 function sendImage($filename, $browser_cache) {
-  $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-  if (in_array($extension, array('png', 'gif', 'jpeg'))) {
-    header("Content-Type: image/".$extension);
+  $headers = getRequestHeaders();
+  // Checking if the client is validating his cache and if it is current.
+  if (isset($headers['If-Modified-Since']) && (strtotime($headers['If-Modified-Since']) == filemtime($filename))) {
+
+    // Client's cache IS current, so we just respond '304 Not Modified'.
+    header('Last-Modified: '.gmdate('D, d M Y H:i:s', filemtime($filename)).' GMT', true, 304);
+
   } else {
-    header("Content-Type: image/jpeg");
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (in_array($extension, array('png', 'gif', 'jpeg'))) {
+      header("Content-Type: image/".$extension);
+    } else {
+      header("Content-Type: image/jpeg");
+    }
+
+    header('Last-Modified: '.gmdate('D, d M Y H:i:s', filemtime($filename)).' GMT', true, 200);
+    header("Cache-Control: private, max-age=".$browser_cache);
+    header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
+    header('Content-Length: '.filesize($filename));
+    readfile($filename);
+ }
+ exit();
+}
+
+/* returns the browser request header : use built in apache ftn when PHP built as module, or query $_SERVER when cgi */
+function getRequestHeaders() {
+  if (function_exists("apache_request_headers")) {
+    if($headers = apache_request_headers()) {
+      return $headers;
+    }
   }
-  header("Cache-Control: private, max-age=".$browser_cache);
-  header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
-  header('Content-Length: '.filesize($filename));
-  readfile($filename);
-  exit();
+  $headers = array();
+  // Grab the IF_MODIFIED_SINCE header
+  if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+    $headers['If-Modified-Since'] = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+  }
+  return $headers;
 }
 
 /* helper function: Create and send an image with an error message. */

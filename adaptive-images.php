@@ -1,14 +1,14 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-                Version: 1.4
-                Changelog: http://adaptive-images.com/changelog.txt
+   Version:   1.4.1
+   Changelog: http://adaptive-images.com/changelog.txt
 
-                Homepage: http://adaptive-images.com
-                GitHub:   https://github.com/MattWilcox/Adaptive-Images
-                Twitter:  @responsiveimg
-                
-                LEGAL:
-                Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
+   Homepage:  http://adaptive-images.com
+   GitHub:    https://github.com/MattWilcox/Adaptive-Images
+   Twitter:   @responsiveimg
+
+   LEGAL:
+   Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
@@ -16,7 +16,7 @@ $resolutions   = array(1382, 992, 768, 480); // the resolution break-points to u
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-$watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
+$watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ if (!is_dir("$document_root/$cache_path")) { // no
   if (!mkdir("$document_root/$cache_path", 0755, true)) { // so make it
     if (!is_dir("$document_root/$cache_path")) { // check again to protect against race conditions
       // uh-oh, failed to make that directory
-      sendErrorImage("Failed to create cache directory: $document_root/$cache_path");
+      sendErrorImage("Failed to create cache directory at: $document_root/$cache_path");
     }
   }
 }
@@ -71,9 +71,32 @@ function sendImage($filename, $browser_cache) {
 
 /* helper function: Create and send an image with an error message. */
 function sendErrorImage($message) {
-  $im         = ImageCreateTrueColor(800, 200);
-  $text_color = ImageColorAllocate($im, 233, 14, 91);
-  ImageString($im, 1, 5, 5, $message, $text_color);
+  /* get all of the required data from the HTTP request */
+  $document_root  = $_SERVER['DOCUMENT_ROOT'];
+  $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+  $requested_file = basename($requested_uri);
+  $source_file    = $document_root.$requested_uri;
+
+  if(!is_mobile()){
+    $is_mobile = "FALSE";
+  } else {
+    $is_mobile = "TRUE";
+  }
+
+  $im            = ImageCreateTrueColor(800, 300);
+  $text_color    = ImageColorAllocate($im, 233, 14, 91);
+  $message_color = ImageColorAllocate($im, 91, 112, 233);
+
+  ImageString($im, 5, 5, 5, "Adaptive Images encountered a problem:", $text_color);
+  ImageString($im, 3, 5, 25, $message, $message_color);
+
+  ImageString($im, 5, 5, 85, "Potentially useful information:", $text_color);
+  ImageString($im, 3, 5, 105, "DOCUMENT ROOT IS: $document_root", $text_color);
+  ImageString($im, 3, 5, 125, "REQUESTED URI WAS: $requested_uri", $text_color);
+  ImageString($im, 3, 5, 145, "REQUESTED FILE WAS: $requested_file", $text_color);
+  ImageString($im, 3, 5, 165, "SOURCE FILE IS: $source_file", $text_color);
+  ImageString($im, 3, 5, 185, "DEVICE IS MOBILE? $is_mobile", $text_color);
+
   header("Cache-Control: no-store");
   header('Expires: '.gmdate('D, d M Y H:i:s', time()-1000).' GMT');
   header('Content-Type: image/jpeg');
@@ -139,14 +162,14 @@ function generateImage($source_file, $cache_file, $resolution) {
     break;
   }
 
-	$dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+  $dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
 
-	if($extension=='png'){
-		imagealphablending($dst, false);
-		imagesavealpha($dst,true);
-		$transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
-		imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
-	}
+  if($extension=='png'){
+    imagealphablending($dst, false);
+    imagesavealpha($dst,true);
+    $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+    imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
+  }
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
   ImageDestroy($src);
 
@@ -171,7 +194,7 @@ function generateImage($source_file, $cache_file, $resolution) {
       if (!is_dir($cache_dir)) {
         // uh-oh, failed to make that directory
         ImageDestroy($dst);
-        sendErrorImage("Failed to create directory: $cache_dir");
+        sendErrorImage("Failed to create cache directory: $cache_dir");
       }
     }
   }

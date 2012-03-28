@@ -1,3 +1,9 @@
+version 1.4.1 (2012/03/28) --------------------------------------------------------------
+
+  ENHANCEMENT
+    * More helpful error messages if something goes wrong.
+    * Updated the documentation a little.
+
 version 1.4 (2012/02/19) --------------------------------------------------------------
 
   ENHANCEMENT

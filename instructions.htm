@@ -21,11 +21,10 @@
     <h1>Adaptive-Images Instructions</h1>
     <h2>Basic instructions</h2>
     <p>Copy <code>adaptive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT, skip down to the advanced instructions.</p>
-    <p>Create a directory called <code>ai-cache</code> in the root of your site and give it write permissions (CHMOD 755).</p>
     <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading, and before any images have been requested.</p>
 <pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+'; path=/';&lt;/script&gt;</code></pre>
-    <p>That's it, you're done.</p>
-    <p>NOTE 1: if you would like to take advantage of high-pixel density devices such as the iPhone4's Retina display you can use the following JavaScript instead.
+    <p>That's it, you're done. You should proberbly <a href="#config">configure some preferences</a> though.</p>
+    <p>NOTE 1: if you would like to take advantage of high-pixel density devices such as the iPhone4 or iPad3 Retina display you can use the following JavaScript instead.
        It will send higher-resolution images to such devices - be aware this will mean slower downloads for users.</p>
     <pre><code>&lt;script&gt;document.cookie='resolution='+(Math.max(screen.width,screen.height)*("devicePixelRatio" in window ? devicePixelRatio : 1))+'; path=/';&lt;/script&gt;</code></pre>
     <p>NOTE 2: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
@@ -72,7 +71,7 @@ RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
   # END Adaptive-Images -------------------------------------------------------------------------------
 &lt;/IfModule&gt;</code></pre>
 
-    <h2>Additional settings and configuration</h2>
+    <h2 id="config">Additional settings and configuration</h2>
     <h3>.htaccess</h3>
     <p>Instructions are in the file as comments (any line that starts with a # is a comment, and doesn't actually do anything)</p>
     <p>Follow the instructions inside that code to specify any directories you don't want to use Adaptive-Images on.</p>
@@ -82,23 +81,21 @@ RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
       
 <pre><code>/* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(1382,992,768,480,320); // the resolution break-points to use (screen widths, in pixels)
-$cache_path    = "ai-cache"; // where to store the generated re-sized images. This folder must be writable.
+$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 80; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-$watch_cache   = TRUE; // check that the responsive image isn't stale (ensures updated source images are re-cached)
+$watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALSE, sends largest $resolutions version)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */</code></pre>
   <p><code>$resolutions</code> are the screen widths we'll work with. In the default it will store a re-sized image for large screens, normal screens, tablets, phones, and tiny phones.</p>
   <p>In general, if you're using a responsive design in CSS, these breakpoints will be exactly the same as the ones you use in your media queries.</p>
-  <p><code>$cache_path</code> If you don't like the cached images being written to that folder, you can put it somewhere else. Just put the path to the folder here and make sure you create it on the server.</p>
+  <p><code>$cache_path</code> If you don't like the cached images being written to that folder, you can put it somewhere else. Just put the path to the folder here and make sure you create it on the server if for some reason that couldn't be done autmoatically by adaptive-images.php.</p>
   <p><code>$sharpen</code> Will perform a subtle sharpening on the rescaled images. Usually this is fine, but you may want to turn it off if your server is very very busy.</p>
   <p><code>$watch_cache</code> If your server gets very busy it may help performance to turn this to FALSE. It will mean however that you will have to manually clear out the cache directory if you change a resource file</p>
-  <p><code>$mobile_first</code> If set to TRUE and no cookie is set, Adaptive Images will send the mobile-resolution version of the requested image. If set to FALSE it will send the largest version set in the $resolutions array.</p>
   
 <h2 id="alternate">Alternate method for those who can't rely on JavaScript</h2>
 
@@ -123,6 +120,6 @@ $mobile_first  = TRUE; // If there's no cookie sends the mobile version (if FALS
 <h3>The caveat</h3>
 <p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly. What that means is that, really, this solution is only viable if you've got $mobile_first set to FALSE. Otherwise, the majority of people who visit your site will experience images too small for their computer on the very first visit.</p>
 <p>The reason is to do with how browsers load web pages. The first thing a browser does is load the HTML, in the order it's written - so for a normal AI install it loads the HTML and see's the embeded JavaScript and immediately executes that JavaScript - which writes the cookie. It then carries on loading the rest of the page in the order it finds it. Long story short - it means that when it finds an image tag and asks the server for it, it already has a cookie stored.</p>
-<p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. Which means no cookie is set. Which means that if $mobile_first is TRUE the mobile sized image is sent. But, only on that very first page load.</p>
+<p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. This is only an issue on the very first page load, and AI has smart fallbacks to deal with a no-cookie situation.</p>
   </body>
 </html>

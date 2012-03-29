@@ -11,7 +11,6 @@ h2. Benefits
 * Is entirely automatic. Once added to your site, you need do no further work.
 * Highly configurable
 ** Set the resolutions you want to become adaptive (usually the same as the ones in your CSS @media queries)
-** Decide whether you want to go Mobile First or Desktop First if JavaScript is unavailable
 ** Choose where you want the cached files to be stored
 ** Configure directories to ignore (protect certain directories so AI is not applied to images within them)
 

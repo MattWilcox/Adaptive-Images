@@ -1,30 +1,39 @@
+version 1.5.1 (2012/04/14) ------------------------------------------------------------
+
+  ENHANCEMENT
+    * JPGs are now created as Progressive rather than Optimised.
+      
+      Progressive JPGs are actually slightly smaller in file-size than Optimised JPGs,
+      and have the benefit of appearing to load faster in modern browsers (they
+      download in passes, gradually getting sharper).
+
 version 1.5 (2012/04/14) --------------------------------------------------------------
 
   ENHANCEMENT
     * Much improved support for Retina and other high DPI devices
 
-    NOTE: Retina support requires using alternate JavaScript:
-    <script>document.cookie='resolution='+Math.max(screen.width,screen.height)+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';</script>
+      NOTE: Retina support requires using alternate JavaScript:
+      <script>document.cookie='resolution='+Math.max(screen.width,screen.height)+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';</script>
 
-    NOTE: If you see folders in the ai-cache directory which are *larger* than any
-    defined in your $resolutions array, it is because someone with a high DPI / Retina
-    display visited your site, and AI was able to generate the required image for them.
+      NOTE: If you see folders in the ai-cache directory which are *larger* than any
+      defined in your $resolutions array, it is because someone with a high DPI / Retina
+      display visited your site, and AI was able to generate the required image for them.
 
-    DETAILS:
-    Previous AI behaviour meant that supporting Retina required adding very high values
-    in the $resolutions array. This is sub-optimal because:
+      DETAILS:
+      Previous AI behaviour meant that supporting Retina required adding very high values
+      in the $resolutions array. This is sub-optimal because:
 
-    1) This array is meant to be nothing more than the same values as your media query
-       breakpoints. Adding larger ones isn't intuitive.
-    2) When no cookie is set, AI sends non-mobile devices the largest $resolution value,
-       which in that case could be far too large for most people (2000px+)
+      1) This array is meant to be nothing more than the same values as your media query
+         breakpoints. Adding larger ones isn't intuitive.
+      2) When no cookie is set, AI sends non-mobile devices the largest $resolution value,
+         which in that case could be far too large for most people (2000px+)
 
-    AI is now much smarter, you do not need to edit the $resolutions array; just leave
-    that as your CSS MQ sizes.
+      AI is now much smarter, you do not need to edit the $resolutions array; just leave
+      that as your CSS MQ sizes.
 
-    AI now auto-detects the pixel density of any high DPI device and either picks a
-    matching size from the existing array, or creates new high-dpi images which are
-    multiples of your chosen $resolutions values.
+      AI now auto-detects the pixel density of any high DPI device and either picks a
+      matching size from the existing array, or creates new high-dpi images which are
+      multiples of your chosen $resolutions values.
 
 version 1.4.1 (2012/03/28) ------------------------------------------------------------
 

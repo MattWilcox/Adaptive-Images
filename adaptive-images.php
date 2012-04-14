@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-   Version:   1.4.1
+   Version:   1.5
    Changelog: http://adaptive-images.com/changelog.txt
 
    Homepage:  http://adaptive-images.com
@@ -241,20 +241,46 @@ if (!extension_loaded('gd')) { // it's not loaded
 
 /* Check to see if a valid cookie exists */
 if (isset($_COOKIE['resolution'])) {
-  if (is_numeric($_COOKIE['resolution'])) {
-    $client_width = (int) $_COOKIE["resolution"]; // store the cookie value in a variable
+  $cookie_value = $_COOKIE['resolution'];
 
-    /* the client width in the cookie is valid, now fit that number into the correct resolution break point */
+  // does the cookie look valid? [whole number, comma, potential floating number]
+  if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
+    setcookie("resolution", "", time() -1); // delete the mangled cookie
+  }
+  else { // the cookie is valid, do stuff with it
+    $cookie_data   = explode(",", $_COOKIE['resolution']);
+    $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
+    $pixel_density = $cookie_data[1];       // the device's pixel density factor (physical pixels per CSS pixel)
+    $total_width   = $client_width;
+
     rsort($resolutions); // make sure the supplied break-points are in reverse size order
-    $resolution = $resolutions[0]; // by default it's the largest supported break-point
+    $resolution = $resolutions[0]; // by default use the largest supported break-point
 
-    foreach ($resolutions as $break_point) { // filter down
-      if ($client_width <= $break_point) {
-        $resolution = $break_point;
+    // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
+    if($pixel_density != 1) {
+      $total_width = $client_width * $pixel_density; // required physical pixel width of the image
+
+      // if that total width is bigger than the largest resolution, define a new one, which will be a
+      // multiple of one of the defined resolutions.
+      if($total_width < $resolutions[0]){
+        $resolution = $total_width;
+      }
+      // otherwise fit the 'high dpi' width into the existing breakpoints if they're big enough already
+      else {
+        foreach ($resolutions as $break_point) { // filter down
+          if ($total_width <= $break_point) {
+            $resolution = $break_point;
+          }
+        }
       }
     }
-  } else {
-    setcookie("resolution", "", time() -1); // delete the mangled cookie
+    else { // pixel density is 1, just fit it into one of the breakpoints
+      foreach ($resolutions as $break_point) { // filter down
+        if ($total_width <= $break_point) {
+          $resolution = $break_point;
+        }
+      }
+    }
   }
 }
 

@@ -245,13 +245,16 @@ if (isset($_COOKIE['resolution'])) {
 
   // does the cookie look valid? [whole number, comma, potential floating number]
   if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
-    setcookie("resolution", "", time() -1); // delete the mangled cookie
+    setcookie("resolution", "$cookie_value", time()-100); // delete the mangled cookie
   }
   else { // the cookie is valid, do stuff with it
     $cookie_data   = explode(",", $_COOKIE['resolution']);
     $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
-    $pixel_density = $cookie_data[1];       // the device's pixel density factor (physical pixels per CSS pixel)
     $total_width   = $client_width;
+    $pixel_density = 1; // set a default, used for non-retina style JS snippet
+    if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
+      $pixel_density = $cookie_data[1];
+    }
 
     rsort($resolutions); // make sure the supplied break-points are in reverse size order
     $resolution = $resolutions[0]; // by default use the largest supported break-point

@@ -26,7 +26,7 @@
     <p>That's it, you're done. You should proberbly <a href="#config">configure some preferences</a> though.</p>
     <p>NOTE 1: if you would like to take advantage of high-pixel density devices such as the iPhone4 or iPad3 Retina display you can use the following JavaScript instead.
        It will send higher-resolution images to such devices - be aware this will mean slower downloads for users.</p>
-    <pre><code>&lt;script&gt;document.cookie='resolution='+(Math.max(screen.width,screen.height)*("devicePixelRatio" in window ? devicePixelRatio : 1))+'; path=/';&lt;/script&gt;</code></pre>
+    <pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';&lt;/script&gt;</code></pre>
     <p>NOTE 2: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
     <p>NOTE 3: If you are extra paranoid about security you can have the ai-cache directory sit outside of your web-root so it's not publicly accessible. Just set the paths properly in the .htaccess file and the .php file.</p>
     
@@ -121,5 +121,10 @@ $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds,
 <p>Using this method instead of the JS method makes it likely that on the very first visit to your site, the images sent to the visitor will be the original full-scale versions. However, ALL subsequent pages on your site will work properly. What that means is that, really, this solution is only viable if you've got $mobile_first set to FALSE. Otherwise, the majority of people who visit your site will experience images too small for their computer on the very first visit.</p>
 <p>The reason is to do with how browsers load web pages. The first thing a browser does is load the HTML, in the order it's written - so for a normal AI install it loads the HTML and see's the embeded JavaScript and immediately executes that JavaScript - which writes the cookie. It then carries on loading the rest of the page in the order it finds it. Long story short - it means that when it finds an image tag and asks the server for it, it already has a cookie stored.</p>
 <p>That's not likely to be the case if you use the CSS method. Because the CSS method relies on an external file - it has to ask the server for the "background-image", which is really just a bit of PHP to set a cookie. The problem is that when a browser loads external files like that, it doesn't stop loading the HTML, it carries on doing that at the same time as waiting for the external file. Which means that it can get to an image tag before the server has finished loading that PHP file. This is only an issue on the very first page load, and AI has smart fallbacks to deal with a no-cookie situation.</p>
+
+<h3>Troubleshooting</h3>
+<p>Most of the time people report problems it is due to one of two things:</p>
+<p><strong>If images vanish</strong>, there is something wrong with your .htaccess configuration. This happens mostly on WordPress sites - it's because the server, and wordpress, have specific requirements that are different from most servers. You'll have to play about in the .htaccess file and read up on how to use ModRewrite.</p>
+<p><strong>If you're seeing error images (big black ones)</strong> That's AI working, so your .htaccess is fine. Read the messages on the image. Most of the time you'll only see this problem because your server requires less strict permissions to write to the disc. Try setting the ai-cache directory to 775, and if all else fails use 777 - but be aware this is not very secure if you're on a shared server, and you ought to instead contact your administrator to get the server set up properly.</p>
   </body>
 </html>

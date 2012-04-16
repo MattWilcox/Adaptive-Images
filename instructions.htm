@@ -21,11 +21,11 @@
     <h1>Adaptive-Images Instructions</h1>
     <h2>Basic instructions</h2>
     <p>Copy <code>adaptive-images.php</code> and <code>.htaccess</code> into the root directory of your site. If you already have a htaccess file DO NOT OVERWRITE IT, skip down to the advanced instructions.</p>
-    <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head because it needs to work before the page has finished loading, and before any images have been requested.</p>
+    <p>Copy the following Javascript into the &lt;head&gt; of your site. It MUST go in the head as the first bit of JS, before any other JS. This is because it needs to work as soon as possible, any delay wil have adverse effects.</p>
 <pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+'; path=/';&lt;/script&gt;</code></pre>
     <p>That's it, you're done. You should proberbly <a href="#config">configure some preferences</a> though.</p>
     <p>NOTE 1: if you would like to take advantage of high-pixel density devices such as the iPhone4 or iPad3 Retina display you can use the following JavaScript instead.
-       It will send higher-resolution images to such devices - be aware this will mean slower downloads for users.</p>
+       It will send higher-resolution images to such devices - be aware this will mean slower downloads for Retina users, but better images.</p>
     <pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';&lt;/script&gt;</code></pre>
     <p>NOTE 2: you do not need the <code>ai-cookie.php</code> file unless you are using the <a href="#alternate">alternate method</a> of detecting the users screen size. So delete it if you like, no one likes mess.</p>
     <p>NOTE 3: If you are extra paranoid about security you can have the ai-cache directory sit outside of your web-root so it's not publicly accessible. Just set the paths properly in the .htaccess file and the .php file.</p>

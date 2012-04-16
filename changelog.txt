@@ -1,4 +1,4 @@
-version 1.5.1 (2012/04/14) ------------------------------------------------------------
+version 1.5.1 (2012/04/16) ------------------------------------------------------------
 
   BUG FIX
     * AI was not generating high DPI images larger than the existing maximum

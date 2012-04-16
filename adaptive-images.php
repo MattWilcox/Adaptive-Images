@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-   Version:   1.5.1
+   Version:   1.5.2
    Changelog: http://adaptive-images.com/changelog.txt
 
    Homepage:  http://adaptive-images.com
@@ -264,12 +264,18 @@ if (isset($_COOKIE['resolution'])) {
     if($pixel_density != 1) {
       $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
-      // if that total width is bigger than the largest resolution, define a new one, which will be a
-      // multiple of one of the defined resolutions.
-      if($total_width < $resolutions[0]){
-        $resolution = $total_width;
+      // the required image width is bigger than any existing value in $resolutions
+      if($total_width > $resolutions[0]){
+        // firstly, fit the CSS size into a break point ignoring the multiplier
+        foreach ($resolutions as $break_point) { // filter down
+          if ($total_width <= $break_point) {
+            $resolution = $break_point;
+          }
+        }
+        // now apply the multiplier
+        $resolution = $resolution * $pixel_density;
       }
-      // otherwise fit the 'high dpi' width into the existing breakpoints if they're big enough already
+      // the required image fits into the existing breakpoints in $resolutions
       else {
         foreach ($resolutions as $break_point) { // filter down
           if ($total_width <= $break_point) {
@@ -298,6 +304,8 @@ if (!$resolution) {
 if(substr($requested_uri, 0,1) == "/") {
   $requested_uri = substr($requested_uri, 1);
 }
+
+/* whew might the cache file be? */
 $cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;
 
 /* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
@@ -309,6 +317,6 @@ if (file_exists($cache_file)) { // it exists cached at that size
   sendImage($cache_file, $browser_cache);
 }
 
-/* It exists as a source file, so lets work with that: */
+/* It exists as a source file, and it doesn't exist cached - lets make one: */
 $file = generateImage($source_file, $cache_file, $resolution);
 sendImage($file, $browser_cache);

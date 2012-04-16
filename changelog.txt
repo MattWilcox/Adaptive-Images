@@ -1,5 +1,14 @@
 version 1.5.1 (2012/04/14) ------------------------------------------------------------
 
+  BUG FIX
+    * AI was not generating high DPI images larger than the existing maximum
+      $resolutions value
+      
+      I used a < when I needed a >. That is now fixed. If AI detects retina displays it
+      is now able to generate larger images than the top bounds set in $resolutions.
+
+version 1.5.1 (2012/04/14) ------------------------------------------------------------
+
   ENHANCEMENT
     * JPGs are now created as Progressive rather than Optimised.
       

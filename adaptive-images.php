@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-   Version:   1.5.2
+   Version:   1.5.2.1
    Changelog: http://adaptive-images.com/changelog.txt
 
    Homepage:  http://adaptive-images.com
@@ -13,15 +13,36 @@
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+$breakpoints   = array('default' => 0, 'micro' => 320, 'mini' => 480, 'small' => 600, 'medium' => 768, 'normal' => 1024, 'large' => 1100); // the image break-points to use in the src-parameter 
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$debug_mode    = FALSE; // writes image dimensions into the stored images
+$prevent_cache = FALSE; // always generate and deliver new images for development
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
+
+/* get the image parameter-string and convert it into an array */
+if($_GET['bp']) {
+  $temp = explode('_', $_GET['bp']);
+  foreach($temp as $key => $item)  {
+    $arr = explode('-', $item);
+    $x = explode('%', $arr[1] );
+    if(count($x) === 2) {
+      $images_param[$arr[0]]['unit'] = '%';
+      $images_param[$arr[0]]['val'] = $x[0];
+    }
+    $x = explode('px', $arr[1] );
+    if(count($x) === 2) {
+      $images_param[$arr[0]]['unit'] = 'px';
+      $images_param[$arr[0]]['val'] = $x[0];
+    }
+  }
+}
 
 /* get all of the required data from the HTTP request */
 $document_root  = $_SERVER['DOCUMENT_ROOT'];
@@ -117,6 +138,12 @@ function findSharp($intOrig, $intFinal) {
 
 /* refreshes the cached image if it's outdated */
 function refreshCache($source_file, $cache_file, $resolution) {
+
+  // prevents caching by config ($prevent_cache and $debug mode)
+  global $debug_mode;
+  global $prevent_cache;
+  if($debug_mode OR $prevent_cache) unlink($cache_file);
+
   if (file_exists($cache_file)) {
     // not modified
     if (filemtime($cache_file) >= filemtime($source_file)) {
@@ -172,6 +199,16 @@ function generateImage($source_file, $cache_file, $resolution) {
   }
   
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+
+  // debug mode
+  global $debug_mode;
+  if($debug_mode){
+    // write a textstring with the dimensions
+    $color = imagecolorallocate($dst, 255, 255, 255); // ugly red 
+    $cookie_data = explode(',', $_COOKIE['resolution']);
+    imagestring( $dst, 5, 10, 5, $new_width." x ".$new_height . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
+  }
+
   ImageDestroy($src);
 
   // sharpen the image?
@@ -291,6 +328,19 @@ if (isset($_COOKIE['resolution'])) {
         }
       }
     }
+
+    // recalculate the resolution depending on the image parameters
+    if(isset($images_param)) {
+      foreach($images_param as $key => $item) {
+        global $breakpoints;
+        $width = $breakpoints[$key];
+        if ($item['unit'] === '%' AND $width * $pixel_density <= $resolution) $resolution_new = $resolution * ($item['val'] / 100);
+        if ($item['unit'] === 'px' AND $width * $pixel_density <= $resolution) $resolution_new = $item['val'] * $pixel_density;
+      }
+      if(isset($resolution_new)) $resolution = $resolution_new;
+      $resolution = ceil($resolution);
+    }
+
   }
 }
 

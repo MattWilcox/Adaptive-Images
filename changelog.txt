@@ -1,3 +1,24 @@
+version 1.5.2.1 (2012/04/18) ------------------------------------------------------------
+
+  NEW FEATURE
+    * Now you can use parameters on the image-src to recalculate the resolution of the 
+      image on different break-points.
+      You can use % depending on the resolution or fixe width in pixel.
+      
+      Setup the break-points in the CONFIG section ofadaptive-images.php
+      $breakpoints  = array('default' => 0, 'small' => 840, 'large' => 960);
+
+      Use the break-points names and set a width in your html-template.
+      <img src="image.jpg?bp=default-100%_small-480px_large-960px" />
+
+    * Debug Mode
+      CONFIG $debug_mode = TRUE;
+      Writes image dimensions into the cached images.
+
+    * Prevent Cache for Development
+      CONFIG $prevent_cache = TRUE;
+      AI will recalculate and deliver new images on each call for development.
+
 version 1.5.2 (2012/04/16) ------------------------------------------------------------
 
   BUG FIX

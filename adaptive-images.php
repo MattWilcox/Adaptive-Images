@@ -12,7 +12,7 @@
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+$resolutions   = array(320, 480, 600, 768, 960, 1024, 1400); // the resolution break-points to use (screen widths, in pixels)
 $breakpoints   = array('default' => 0, 'micro' => 320, 'mini' => 480, 'small' => 600, 'medium' => 768, 'normal' => 1024, 'large' => 1100); // the image break-points to use in the src-parameter 
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100

@@ -26,6 +26,16 @@ $prevent_cache = FALSE; // always generate and deliver new images for developmen
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
 
+/* get the image size and build the breakpoint-string */
+include('setup.php');
+if($_GET['size']) {
+	foreach($setup[$_GET['size']]['breackpoints'] as $key => $value) {
+		$param_array[] = $key . '-' . $value;
+	}
+	$param = implode( '_', $param_array );
+	$_GET['bp'] = $param;
+}
+
 /* get the image parameter-string and convert it into an array */
 if($_GET['bp']) {
   $temp = explode('_', $_GET['bp']);

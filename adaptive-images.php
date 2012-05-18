@@ -14,16 +14,17 @@ Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 
 
 include('setup.php');
 
-$resolutions	= $config['resolutions']; // the resolution break-points to use (screen widths, in pixels)
-$breakpoints	= $config['breakpoints']; // the image break-points to use in the src-parameter 
-$cache_path		= $config['cache_path']; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
-$jpg_quality	= $config['jpg_quality']; // the quality of any generated JPGs on a scale of 0 to 100
-$sharpen		= $config['sharpen']['status']; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-$watch_cache	= $config['watch_cache']; // check that the adapted image isn't stale (ensures updated source images are re-cached)
-$browser_cache	= $config['browser_cache']; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$debug_mode		= $config['debug_mode']; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
-$prevent_cache	= $config['prevent_cache']; // always generate and deliver new images
-
+$resolutions		= $config['resolutions']; // the resolution break-points to use (screen widths, in pixels)
+$breakpoints		= $config['breakpoints']; // the image break-points to use in the src-parameter 
+$cache_path			= $config['cache_path']; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
+$jpg_quality		= $config['jpg_quality']; // the quality of any generated JPGs on a scale of 0 to 100
+$sharpen			= $config['sharpen']['status']; // Shrinking images can blur details, perform a sharpen on re-scaled images?
+$watch_cache		= $config['watch_cache']; // check that the adapted image isn't stale (ensures updated source images are re-cached)
+$browser_cache		= $config['browser_cache']; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$debug_mode			= $config['debug_mode']; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
+$prevent_cache		= $config['prevent_cache']; // always generate and deliver new images
+$setup_ratio_arr	= FALSE;
+if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr	= explode(':', $setup[$_GET['size']]['ratio']);
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
@@ -171,7 +172,7 @@ function refreshCache($source_file, $cache_file, $resolution) {
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution) {
 	
-	global $sharpen, $jpg_quality;
+	global $sharpen, $jpg_quality, $setup_ratio_arr;
 
 	$extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -189,12 +190,46 @@ function generateImage($source_file, $cache_file, $resolution) {
 	
 	
 	// We need to resize the source image to the width of the resolution breakpoint we're working with
-	$ratio      = $height/$width;
+	$ratio      = $height / $width;
 	$new_width  = $resolution;
 	$new_height = ceil($new_width * $ratio);
-	$dst        = ImageCreateTrueColor($new_width, $new_height); // re-sized image
-
-
+	
+	$debug_width = $new_width;
+	$debug_height = $new_height;
+	
+	if ( $setup_ratio_arr ) {
+		
+		// set height for new image 
+		$orig_ratio = $new_width / $new_height;
+		$crop_ratio = $setup_ratio_arr[0] / $setup_ratio_arr[1];
+		$ratio_diff = $orig_ratio / $crop_ratio;
+		$ini_new_height = ceil($new_height * $ratio_diff);
+		
+		$dst = ImageCreateTrueColor($new_width, $ini_new_height); // re-sized image
+		
+		$debug_width = $new_width;
+		$debug_height = $ini_new_height;
+		
+		// set new width and height for skaleing image to fit new height
+		$start_x = 0;
+		$start_y = 0;
+		if($ini_new_height > $new_height) {
+			$crop_factor = $ini_new_height / $new_height;
+			$temp_new_width = ceil($new_width * $crop_factor);
+			$new_height = ceil($new_height * $crop_factor);
+			$start_x = ($new_width - $temp_new_width) / 2;
+			$new_width = $temp_new_width;
+		}
+		else {
+			$start_y = -($new_height - $ini_new_height) / 2;
+		}
+	}
+	else {
+		$dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+	}
+	
+	
+	
 	switch ($extension) {
 		case 'png':
 		$src = @ImageCreateFromPng($source_file); // original image
@@ -213,17 +248,17 @@ function generateImage($source_file, $cache_file, $resolution) {
 		$transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
 		imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
 	}
-
-	ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
-
-
+	
+	ImageCopyResampled($dst, $src, $start_x, $start_y, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+	
+	
 	// debug mode
 	global $debug_mode;
 	if($debug_mode) {
 		// write a textstring with the dimensions
 		$color = imagecolorallocate($dst, 255, 255, 255); // ugly red 
 		$cookie_data = explode(',', $_COOKIE['resolution']);
-		imagestring( $dst, 5, 10, 5, $new_width." x ".$new_height . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
+		imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
 	}
 
 	ImageDestroy($src);

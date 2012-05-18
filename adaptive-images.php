@@ -12,26 +12,24 @@ Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(320, 480, 600, 768, 960, 1024, 1400); // the resolution break-points to use (screen widths, in pixels)
-$breakpoints  = array('default' => 0, 'micro' => 320, 'mini' => 480, 'small' => 600, 'medium' => 768, 'normal' => 1024, 'large' => 1100); // the image break-points to use in the src-parameter 
-$cache_path    = "ai-cache"; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
-$jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
-$sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-$watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
-$browser_cache = 60; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-$debug_mode = TRUE; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
-$prevent_cache = TRUE; // always generate and deliver new images
+include('setup.php');
+
+$resolutions	= $config['resolutions']; // the resolution break-points to use (screen widths, in pixels)
+$breakpoints	= $config['breakpoints']; // the image break-points to use in the src-parameter 
+$cache_path		= $config['cache_path']; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
+$jpg_quality	= $config['jpg_quality']; // the quality of any generated JPGs on a scale of 0 to 100
+$sharpen		= $config['sharpen']['status']; // Shrinking images can blur details, perform a sharpen on re-scaled images?
+$watch_cache	= $config['watch_cache']; // check that the adapted image isn't stale (ensures updated source images are re-cached)
+$browser_cache	= $config['browser_cache']; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$debug_mode		= $config['debug_mode']; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
+$prevent_cache	= $config['prevent_cache']; // always generate and deliver new images
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
 
-/* crop images on given ratio
-info croping: http://stackoverflow.com/questions/1855996/crop-image-in-php
-*/
 
 /* get the image size and build the breakpoint-string */
-include('setup.php');
 if($_GET['size']) {
 	foreach($setup[$_GET['size']]['breackpoints'] as $key => $value) {
 		$param_array[] = $key . '-' . $value;
@@ -172,9 +170,11 @@ function refreshCache($source_file, $cache_file, $resolution) {
 
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution) {
+	
 	global $sharpen, $jpg_quality;
 
 	$extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
+
 
 	// Check the image dimensions
 	$dimensions   = GetImageSize($source_file);
@@ -186,6 +186,8 @@ function generateImage($source_file, $cache_file, $resolution) {
 	if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
 		return $source_file;
 	}
+	
+	
 	// We need to resize the source image to the width of the resolution breakpoint we're working with
 	$ratio      = $height/$width;
 	$new_width  = $resolution;
@@ -214,6 +216,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 
 	ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
 
+
 	// debug mode
 	global $debug_mode;
 	if($debug_mode) {
@@ -225,14 +228,17 @@ function generateImage($source_file, $cache_file, $resolution) {
 
 	ImageDestroy($src);
 
+
 	// sharpen the image
 	if($sharpen == TRUE) {
-		$amount = '80'; // max 500
+		global $config;
+		$amount = $config['sharpen']['amount']; // max 500
 		$radius = '1'; // 50
 		$threshold = '0'; // max 255
 		$dst = UnsharpMask($dst, $amount, $radius, $threshold);
 	}
 
+	/*
 	// sharpen the image?
 	// NOTE: requires PHP compiled with the bundled version of GD (see http://php.net/manual/en/function.imageconvolution.php)
 
@@ -245,8 +251,10 @@ function generateImage($source_file, $cache_file, $resolution) {
 		);
 		imageconvolution($dst, $arrMatrix, $intSharpness, 0);
 	}
+	*/
 
 	$cache_dir = dirname($cache_file);
+
 
 	// does the directory exist already?
 	if (!is_dir($cache_dir)) { 
@@ -263,6 +271,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 	if (!is_writable($cache_dir)) {
 		sendErrorImage("The cache directory is not writable: $cache_dir");
 	}
+
 
 	// save the new file in the appropriate path, and send a version to the browser
 	switch ($extension) {
@@ -428,137 +437,138 @@ and the roundoff errors in the Gaussian blur process, are welcome.
 
 function UnsharpMask($img, $amount, $radius, $threshold) {  
 
-////////////////////////////////////////////////////////////////////////////////////////////////   
-////   
-////                  Unsharp Mask for PHP - version 2.1.1   
-////   
-////    Unsharp mask algorithm by Torstein Hønsi 2003-07.   
-////             thoensi_at_netcom_dot_no.   
-////               Please leave this notice.   
-////   
-///////////////////////////////////////////////////////////////////////////////////////////////   
+	////////////////////////////////////////////////////////////////////////////////////////////////   
+	////   
+	////                  Unsharp Mask for PHP - version 2.1.1   
+	////   
+	////    Unsharp mask algorithm by Torstein Hønsi 2003-07.   
+	////             thoensi_at_netcom_dot_no.   
+	////               Please leave this notice.   
+	////   
+	///////////////////////////////////////////////////////////////////////////////////////////////   
 
 
 
-// $img is an image that is already created within php using  
-// imgcreatetruecolor. No url! $img must be a truecolor image.  
+	// $img is an image that is already created within php using  
+	// imgcreatetruecolor. No url! $img must be a truecolor image.  
 
-// Attempt to calibrate the parameters to Photoshop:  
-if ($amount > 500)    $amount = 500;  
-$amount = $amount * 0.016;  
-if ($radius > 50)    $radius = 50;  
-$radius = $radius * 2;  
-if ($threshold > 255)    $threshold = 255;  
+	// Attempt to calibrate the parameters to Photoshop:  
+	if ($amount > 500)    $amount = 500;  
+	$amount = $amount * 0.016;  
+	if ($radius > 50)    $radius = 50;  
+	$radius = $radius * 2;  
+	if ($threshold > 255)    $threshold = 255;  
 
-$radius = abs(round($radius));     // Only integers make sense.  
-if ($radius == 0) {  
-	return $img; imagedestroy($img); break;        }  
+	$radius = abs(round($radius));     // Only integers make sense.  
+	if ($radius == 0) {  
+		return $img; imagedestroy($img); break;
+	}  
 	$w = imagesx($img); $h = imagesy($img);  
 	$imgCanvas = imagecreatetruecolor($w, $h);  
 	$imgBlur = imagecreatetruecolor($w, $h);  
 
 
-// Gaussian blur matrix:  
-//                          
-//    1    2    1          
-//    2    4    2          
-//    1    2    1          
-//                          
-//////////////////////////////////////////////////  
+	// Gaussian blur matrix:  
+	//                          
+	//    1    2    1          
+	//    2    4    2          
+	//    1    2    1          
+	//                          
+	//////////////////////////////////////////////////  
 
 
-if (function_exists('imageconvolution')) { // PHP >= 5.1   
-	$matrix = array(   
-	array( 1, 2, 1 ),   
-	array( 2, 4, 2 ),   
-	array( 1, 2, 1 )   
-	);   
-	imagecopy ($imgBlur, $img, 0, 0, 0, 0, $w, $h);  
-	imageconvolution($imgBlur, $matrix, 16, 0);   
-}   
-else {   
+	if (function_exists('imageconvolution')) { // PHP >= 5.1   
+		$matrix = array(   
+		array( 1, 2, 1 ),   
+		array( 2, 4, 2 ),   
+		array( 1, 2, 1 )   
+		);   
+		imagecopy ($imgBlur, $img, 0, 0, 0, 0, $w, $h);  
+		imageconvolution($imgBlur, $matrix, 16, 0);   
+	}   
+	else {   
 
-// Move copies of the image around one pixel at the time and merge them with weight  
-// according to the matrix. The same matrix is simply repeated for higher radii.  
-for ($i = 0; $i < $radius; $i++)    {  
-	imagecopy ($imgBlur, $img, 0, 0, 1, 0, $w - 1, $h); // left  
-	imagecopymerge ($imgBlur, $img, 1, 0, 0, 0, $w, $h, 50); // right  
-	imagecopymerge ($imgBlur, $img, 0, 0, 0, 0, $w, $h, 50); // center  
-	imagecopy ($imgCanvas, $imgBlur, 0, 0, 0, 0, $w, $h);  
+		// Move copies of the image around one pixel at the time and merge them with weight  
+		// according to the matrix. The same matrix is simply repeated for higher radii.  
+		for ($i = 0; $i < $radius; $i++) {  
+			imagecopy ($imgBlur, $img, 0, 0, 1, 0, $w - 1, $h); // left  
+			imagecopymerge ($imgBlur, $img, 1, 0, 0, 0, $w, $h, 50); // right  
+			imagecopymerge ($imgBlur, $img, 0, 0, 0, 0, $w, $h, 50); // center  
+			imagecopy ($imgCanvas, $imgBlur, 0, 0, 0, 0, $w, $h);  
 
-imagecopymerge ($imgBlur, $imgCanvas, 0, 0, 0, 1, $w, $h - 1, 33.33333 ); // up  
-imagecopymerge ($imgBlur, $imgCanvas, 0, 1, 0, 0, $w, $h, 25); // down  
-}  
-}  
+			imagecopymerge ($imgBlur, $imgCanvas, 0, 0, 0, 1, $w, $h - 1, 33.33333 ); // up  
+			imagecopymerge ($imgBlur, $imgCanvas, 0, 1, 0, 0, $w, $h, 25); // down  
+		}  
+	}  
 
-if($threshold>0){  
-	// Calculate the difference between the blurred pixels and the original  
-	// and set the pixels  
-	for ($x = 0; $x < $w-1; $x++)    { // each row 
-		for ($y = 0; $y < $h; $y++)    { // each pixel  
+	if($threshold>0) {  
+		// Calculate the difference between the blurred pixels and the original  
+		// and set the pixels  
+		for ($x = 0; $x < $w-1; $x++)    { // each row 
+			for ($y = 0; $y < $h; $y++)    { // each pixel  
 
-$rgbOrig = ImageColorAt($img, $x, $y);  
-$rOrig = (($rgbOrig >> 16) & 0xFF);  
-$gOrig = (($rgbOrig >> 8) & 0xFF);  
-$bOrig = ($rgbOrig & 0xFF);  
+				$rgbOrig = ImageColorAt($img, $x, $y);  
+				$rOrig = (($rgbOrig >> 16) & 0xFF);  
+				$gOrig = (($rgbOrig >> 8) & 0xFF);  
+				$bOrig = ($rgbOrig & 0xFF);  
 
-$rgbBlur = ImageColorAt($imgBlur, $x, $y);  
+				$rgbBlur = ImageColorAt($imgBlur, $x, $y);  
 
-$rBlur = (($rgbBlur >> 16) & 0xFF);  
-$gBlur = (($rgbBlur >> 8) & 0xFF);  
-$bBlur = ($rgbBlur & 0xFF);  
+				$rBlur = (($rgbBlur >> 16) & 0xFF);  
+				$gBlur = (($rgbBlur >> 8) & 0xFF);  
+				$bBlur = ($rgbBlur & 0xFF);  
 
-// When the masked pixels differ less from the original  
-// than the threshold specifies, they are set to their original value.  
-$rNew = (abs($rOrig - $rBlur) >= $threshold)   
-? max(0, min(255, ($amount * ($rOrig - $rBlur)) + $rOrig))   
-: $rOrig;  
-$gNew = (abs($gOrig - $gBlur) >= $threshold)   
-? max(0, min(255, ($amount * ($gOrig - $gBlur)) + $gOrig))   
-: $gOrig;  
-$bNew = (abs($bOrig - $bBlur) >= $threshold)   
-? max(0, min(255, ($amount * ($bOrig - $bBlur)) + $bOrig))   
-: $bOrig;  
+				// When the masked pixels differ less from the original  
+				// than the threshold specifies, they are set to their original value.  
+				$rNew = (abs($rOrig - $rBlur) >= $threshold)   
+				? max(0, min(255, ($amount * ($rOrig - $rBlur)) + $rOrig))   
+				: $rOrig;  
+				$gNew = (abs($gOrig - $gBlur) >= $threshold)   
+				? max(0, min(255, ($amount * ($gOrig - $gBlur)) + $gOrig))   
+				: $gOrig;  
+				$bNew = (abs($bOrig - $bBlur) >= $threshold)   
+				? max(0, min(255, ($amount * ($bOrig - $bBlur)) + $bOrig))   
+				: $bOrig;  
 
 
 
-if (($rOrig != $rNew) || ($gOrig != $gNew) || ($bOrig != $bNew)) {  
-	$pixCol = ImageColorAllocate($img, $rNew, $gNew, $bNew);  
-	ImageSetPixel($img, $x, $y, $pixCol);  
-}  
-}  
-}  
-}  
-else{  
-	for ($x = 0; $x < $w; $x++)    { // each row  
-		for ($y = 0; $y < $h; $y++)    { // each pixel  
-			$rgbOrig = ImageColorAt($img, $x, $y);  
-			$rOrig = (($rgbOrig >> 16) & 0xFF);  
-			$gOrig = (($rgbOrig >> 8) & 0xFF);  
-			$bOrig = ($rgbOrig & 0xFF);  
+				if (($rOrig != $rNew) || ($gOrig != $gNew) || ($bOrig != $bNew)) {  
+					$pixCol = ImageColorAllocate($img, $rNew, $gNew, $bNew);  
+					ImageSetPixel($img, $x, $y, $pixCol);  
+				}  
+			}  
+		}  
+	}  
+	else {  
+		for ($x = 0; $x < $w; $x++) { // each row  
+			for ($y = 0; $y < $h; $y++) { // each pixel  
+				$rgbOrig = ImageColorAt($img, $x, $y);  
+				$rOrig = (($rgbOrig >> 16) & 0xFF);  
+				$gOrig = (($rgbOrig >> 8) & 0xFF);  
+				$bOrig = ($rgbOrig & 0xFF);  
 
-$rgbBlur = ImageColorAt($imgBlur, $x, $y);  
+				$rgbBlur = ImageColorAt($imgBlur, $x, $y);  
 
-$rBlur = (($rgbBlur >> 16) & 0xFF);  
-$gBlur = (($rgbBlur >> 8) & 0xFF);  
-$bBlur = ($rgbBlur & 0xFF);  
+				$rBlur = (($rgbBlur >> 16) & 0xFF);  
+				$gBlur = (($rgbBlur >> 8) & 0xFF);  
+				$bBlur = ($rgbBlur & 0xFF);  
 
-$rNew = ($amount * ($rOrig - $rBlur)) + $rOrig;  
-if($rNew>255){$rNew=255;}  
-elseif($rNew<0){$rNew=0;}  
-$gNew = ($amount * ($gOrig - $gBlur)) + $gOrig;  
-if($gNew>255){$gNew=255;}  
-elseif($gNew<0){$gNew=0;}  
-$bNew = ($amount * ($bOrig - $bBlur)) + $bOrig;  
-if($bNew>255){$bNew=255;}  
-elseif($bNew<0){$bNew=0;}  
-$rgbNew = ($rNew << 16) + ($gNew <<8) + $bNew;  
-ImageSetPixel($img, $x, $y, $rgbNew);  
-}  
-}  
-}  
-imagedestroy($imgCanvas);  
-imagedestroy($imgBlur);  
+				$rNew = ($amount * ($rOrig - $rBlur)) + $rOrig;  
+				if($rNew>255){$rNew=255;}  
+				elseif($rNew<0){$rNew=0;}  
+				$gNew = ($amount * ($gOrig - $gBlur)) + $gOrig;  
+				if($gNew>255){$gNew=255;}  
+				elseif($gNew<0){$gNew=0;}  
+				$bNew = ($amount * ($bOrig - $bBlur)) + $bOrig;  
+				if($bNew>255){$bNew=255;}  
+				elseif($bNew<0){$bNew=0;}  
+				$rgbNew = ($rNew << 16) + ($gNew <<8) + $bNew;  
+				ImageSetPixel($img, $x, $y, $rgbNew);  
+			}  
+		}  
+	}  
+	imagedestroy($imgCanvas);  
+	imagedestroy($imgBlur);  
 
-return $img;
+	return $img;
 }

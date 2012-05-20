@@ -184,14 +184,21 @@ function generateImage($source_file, $cache_file, $resolution) {
 
 
 	// Do we need to downscale the image?
+	/* because of cropping, we need to prozess the image
 	if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
 		return $source_file;
 	}
-	
+	*/
 	
 	// We need to resize the source image to the width of the resolution breakpoint we're working with
-	$ratio      = $height / $width;
-	$new_width  = $resolution;
+	$ratio = $height / $width;
+	if ($width <= $resolution) {
+		$new_width  = $width;
+	}
+	else {
+		$new_width  = $resolution;
+	}
+	
 	$new_height = ceil($new_width * $ratio);
 	
 	$debug_width = $new_width;
@@ -258,7 +265,9 @@ function generateImage($source_file, $cache_file, $resolution) {
 		// write a textstring with the dimensions
 		$color = imagecolorallocate($dst, 255, 255, 255); // ugly red 
 		$cookie_data = explode(',', $_COOKIE['resolution']);
-		imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
+		$debug_ratio = false;
+		if( $setup_ratio_arr ) $debug_ratio = $setup_ratio_arr[0] . ':' . $setup_ratio_arr[1];
+		imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' ' . $debug_ratio . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
 	}
 
 	ImageDestroy($src);

@@ -8,7 +8,7 @@
   # RewriteCond %{REQUEST_URI} !ignore-this-directory
   # RewriteCond %{REQUEST_URI} !and-ignore-this-directory-too
   
-  RewriteCond %{REQUEST_URI} !assets
+  RewriteCond %{REQUEST_URI} !themes
 
   # don't apply the AI behaviour to images inside AI's cache folder:
   RewriteCond %{REQUEST_URI} !ai-cache

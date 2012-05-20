@@ -155,7 +155,7 @@ function refreshCache($source_file, $cache_file, $resolution) {
 	// prevents caching by config ($prevent_cache and $debug mode)
 	global $debug_mode;
 	global $prevent_cache;
-	if($debug_mode OR $prevent_cache) unlink($cache_file);
+	if($prevent_cache) unlink($cache_file);
 
 	if (file_exists($cache_file)) {
 		// not modified

@@ -21,7 +21,7 @@ h2. Description
 
 h3. he easy original "Adaptive Images" behavior:
 	
-		<img src="image.jpg" />
+		&#060;img src="image.jpg" /&#062;
 	
 		The original "Adaptive Images" by Matt Wilcox.
 		This will resizes every image on the rewrite conditions (.htaccess). The size 
@@ -30,10 +30,9 @@ h3. he easy original "Adaptive Images" behavior:
 		by setting $config['enable_resolutions'] = TRUE. Then all images without a 
 		size-parameter will be sized by the original behavior of "Adaptive Images".
 	
+h3. The more spezific behavior:
 	
-h3. he more spezific behavior:
-	
-		<img src="image.jpg?size=term" />
+		&#060;img src="image.jpg?size=term" /&#062;
 	
 		*Breakpoints and sizes*
 			Now you can define, what size an image has to have on spezific configurable 
@@ -60,14 +59,14 @@ h3. he more spezific behavior:
 		*Prevent cache*
 			For developping, you might will see changes of the setup on every 
 			page-reload. Then setup:
-				config['browser_cache'] = 0;
+				$config['browser_cache'] = 0;
 				$config['prevent_cache'] = TRUE;
 			
 		*Debug mode*
 			This inserts some informations into the image.
-			**image dimensions
-			**the aspect ratio
-			**the device-width
+			- image dimensions
+			- the aspect ratio
+			- the device-width
 			
 h2. Legal
 

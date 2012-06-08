@@ -19,7 +19,7 @@ Copy the .htaccess at the root-folder or copy its code in an existing .htaccess 
 
 h2. Description
 
-h3. he easy original "Adaptive Images" behavior:
+h3. The easy original "Adaptive Images" behavior:
 
 &#060;img src="image.jpg" /&#062;
 

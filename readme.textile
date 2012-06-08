@@ -20,53 +20,53 @@ Copy the .htaccess at the root-folder or copy its code in an existing .htaccess 
 h2. Description
 
 h3. he easy original "Adaptive Images" behavior:
-	
-		&#060;img src="image.jpg" /&#062;
-	
-		The original "Adaptive Images" by Matt Wilcox.
-		This will resizes every image on the rewrite conditions (.htaccess). The size 
-		of the image will be the one value of the $config['resolutions'] that is equal 
-		or closest higher than the device maximum width. You can enable this behavior 
-		by setting $config['enable_resolutions'] = TRUE. Then all images without a 
-		size-parameter will be sized by the original behavior of "Adaptive Images".
-	
+
+&#060;img src="image.jpg" /&#062;
+
+The original "Adaptive Images" by Matt Wilcox.
+This will resizes every image on the rewrite conditions (.htaccess). The size 
+of the image will be the one value of the $config['resolutions'] that is equal 
+or closest higher than the device maximum width. You can enable this behavior 
+by setting $config['enable_resolutions'] = TRUE. Then all images without a 
+size-parameter will be sized by the original behavior of "Adaptive Images".
+
 h3. The more spezific behavior:
-	
-		&#060;img src="image.jpg?size=term" /&#062;
-	
-		*Breakpoints and sizes*
-			Now you can define, what size an image has to have on spezific configurable 
-			breakpoints equal to your media-queries. Just start with an default 
-			breakpoint  and size 0. If you do not setup an higher breakpoint than 0, 
-			the image will be this size on every device-dimensions. You can set the 
-			width in pixel or percentage. If you use for instance 100% in this case, 
-			the image will be 100% the size of the resolution, that is equal or 
-			closest higher than the device maximum width, but maximum width of the 
-			larges configured resolution.
-	
-		*Cropping (cutting to fit)*
-			You can define an aspect ratio for a term. 
-			All depending images will be cropped.
-	
-		*Sharpen*
-			You can define the amount of sharpness for a term. 0 is no sharpness, 
-			up to 30 is pleasant, higher than 30 is really sharp (max 500).
-	
-		*JPEG quality*
-			You can define the JPEG quality for a term from 100, which is best, 
-			down to 70, which is pleasant.
-			
-		*Prevent cache*
-			For developping, you might will see changes of the setup on every 
-			page-reload. Then setup:
-				$config['browser_cache'] = 0;
-				$config['prevent_cache'] = TRUE;
-			
-		*Debug mode*
-			This inserts some informations into the image.
-			- image dimensions
-			- the aspect ratio
-			- the device-width
+
+&#060;img src="image.jpg?size=term" /&#062;
+
+*Breakpoints and sizes*
+Now you can define, what size an image has to have on spezific configurable 
+breakpoints equal to your media-queries. Just start with an default 
+breakpoint  and size 0. If you do not setup an higher breakpoint than 0, 
+the image will be this size on every device-dimensions. You can set the 
+width in pixel or percentage. If you use for instance 100% in this case, 
+the image will be 100% the size of the resolution, that is equal or 
+closest higher than the device maximum width, but maximum width of the 
+larges configured resolution.
+
+*Cropping (cutting to fit)*
+You can define an aspect ratio for a term. 
+All depending images will be cropped.
+
+*Sharpen*
+You can define the amount of sharpness for a term. 0 is no sharpness, 
+up to 30 is pleasant, higher than 30 is really sharp (max 500).
+
+*JPEG quality*
+You can define the JPEG quality for a term from 100, which is best, 
+down to 70, which is pleasant.
+
+*Prevent cache*
+For developping, you might will see changes of the setup on every 
+page-reload. Then setup:
+$config['browser_cache'] = 0;
+$config['prevent_cache'] = TRUE;
+
+*Debug mode*
+This inserts some informations into the image.
+* image dimensions
+* the aspect ratio
+* the device-width
 			
 h2. Legal
 

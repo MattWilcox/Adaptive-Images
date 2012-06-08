@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-Version:   1.5.3
+Version:   1.5.5
 Changelog: http://adaptive-images.com/changelog.txt
 
 Homepage:  http://adaptive-images.com
@@ -11,6 +11,8 @@ LEGAL:
 Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
+
+
 
 include('setup.php');
 
@@ -28,11 +30,12 @@ if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr	= explode(':', $setup
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
-
+if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
+if( isset($setup[$_GET['size']]['jpg_quality']) ) $jpg_quality = $setup[$_GET['size']]['jpg_quality'];
 
 /* get the image size and build the breakpoint-string */
 if($_GET['size']) {
-	foreach($setup[$_GET['size']]['breackpoints'] as $key => $value) {
+	foreach($setup[$_GET['size']]['breakpoints'] as $key => $value) {
 		$param_array[] = $key . '-' . $value;
 	}
 	$param = implode( '_', $param_array );
@@ -57,12 +60,21 @@ if($_GET['bp']) {
 	}
 }
 
+
+
+
 /* get all of the required data from the HTTP request */
 $document_root  = $_SERVER['DOCUMENT_ROOT'];
 $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
+
+
+if( !isset($images_param) || count($images_param) === 0 ) {
+	sendImage($source_file, $browser_cache);
+	die();
+}
 
 /* Mobile detection 
 NOTE: only used in the event a cookie isn't available. */
@@ -279,7 +291,8 @@ function generateImage($source_file, $cache_file, $resolution) {
 		$amount = $config['sharpen']['amount']; // max 500
 		$radius = '1'; // 50
 		$threshold = '0'; // max 255
-		$dst = UnsharpMask($dst, $amount, $radius, $threshold);
+		
+		if($amount !== '0') $dst = UnsharpMask($dst, $amount, $radius, $threshold);
 	}
 
 	/*
@@ -354,9 +367,9 @@ if (!extension_loaded('gd')) { // it's not loaded
 }
 
 /* Check to see if a valid cookie exists */
-if (isset($_COOKIE['resolution'])) {
+if (isset($_COOKIE['resolution']) ) {
 	$cookie_value = $_COOKIE['resolution'];
-
+	
 	// does the cookie look valid? [whole number, comma, potential floating number]
 	if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
 		setcookie("resolution", "$cookie_value", time()-100); // delete the mangled cookie
@@ -370,7 +383,8 @@ if (isset($_COOKIE['resolution'])) {
 		if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
 			$pixel_density = $cookie_data[1];
 		}
-
+		if ( $pixel_density != 2 ) $pixel_density = 1;
+		
 		rsort($resolutions); // make sure the supplied break-points are in reverse size order
 		$resolution = $resolutions[0]; // by default use the largest supported break-point
 
@@ -407,6 +421,7 @@ if (isset($_COOKIE['resolution'])) {
 		}
 
 		// recalculate the resolution depending on the image parameters
+		
 		if(isset($images_param)) {
 			foreach($images_param as $key => $item) {
 				global $breakpoints;
@@ -424,9 +439,13 @@ if (isset($_COOKIE['resolution'])) {
 /* No resolution was found (no cookie or invalid cookie) */
 if (!$resolution) {
 	// We send the lowest resolution for mobile-first approach, and highest otherwise
-	$resolution = $is_mobile ? min($resolutions) : max($resolutions);
+	// $resolution = $is_mobile ? min($resolutions) : max($resolutions);
+	
+	foreach($setup[$_GET['size']]['breakpoints'] as $key => $value) {
+		$array[] = strtr($value, array ('px'=>'','%'=>''));
+	}
+	$resolution = $is_mobile ? min($array) : max($array);
 }
-
 /* if the requested URL starts with a slash, remove the slash */
 if(substr($requested_uri, 0,1) == "/") {
 	$requested_uri = substr($requested_uri, 1);
@@ -447,6 +466,7 @@ if (file_exists($cache_file)) { // it exists cached at that size
 /* It exists as a source file, and it doesn't exist cached - lets make one: */
 $file = generateImage($source_file, $cache_file, $resolution);
 sendImage($file, $browser_cache);
+
 
 
 

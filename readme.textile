@@ -1,21 +1,75 @@
-h1. Adaptive Images
+h1. Adaptive Images (adapted)
 
-Is a solution to automatically create, cache, and deliver device-appropriate versions of your website's content images. It does not require you to change your mark-up. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Image":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
+Is a solution to automatically create, cache, and deliver device-appropriate versions of your website's content images. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Image":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
 
 h2. Benefits
 
 * Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.
-* Will work on your existing site, as it requires no changes to your mark-up.
 * Is device agnostic (it works by detecting the size of the visitors screen)
 * Is CMS agnostic (it manages its own image re-sizing, and will work on any CMS or even on flat HTML pages)
-* Is entirely automatic. Once added to your site, you need do no further work.
 * Highly configurable
-** Set the resolutions you want to become adaptive (usually the same as the ones in your CSS @media queries)
 ** Choose where you want the cached files to be stored
 ** Configure directories to ignore (protect certain directories so AI is not applied to images within them)
 
-Find out more, and view examples at "http://adaptive-images.com":http://adaptive-images.com
+h2. Install
 
+Copy the adaptive-images folder at the root-folder.
+Make sure, the permission of the adaptive-images folder is 755.
+Copy the .htaccess at the root-folder or copy its code in an existing .htaccess file.
+
+h2. Description
+
+h3. he easy original "Adaptive Images" behavior:
+	
+		<img src="image.jpg" />
+	
+		The original "Adaptive Images" by Matt Wilcox.
+		This will resizes every image on the rewrite conditions (.htaccess). The size 
+		of the image will be the one value of the $config['resolutions'] that is equal 
+		or closest higher than the device maximum width. You can enable this behavior 
+		by setting $config['enable_resolutions'] = TRUE. Then all images without a 
+		size-parameter will be sized by the original behavior of "Adaptive Images".
+	
+	
+h3. he more spezific behavior:
+	
+		<img src="image.jpg?size=term" />
+	
+		*Breakpoints and sizes*
+			Now you can define, what size an image has to have on spezific configurable 
+			breakpoints equal to your media-queries. Just start with an default 
+			breakpoint  and size 0. If you do not setup an higher breakpoint than 0, 
+			the image will be this size on every device-dimensions. You can set the 
+			width in pixel or percentage. If you use for instance 100% in this case, 
+			the image will be 100% the size of the resolution, that is equal or 
+			closest higher than the device maximum width, but maximum width of the 
+			larges configured resolution.
+	
+		*Cropping (cutting to fit)*
+			You can define an aspect ratio for a term. 
+			All depending images will be cropped.
+	
+		*Sharpen*
+			You can define the amount of sharpness for a term. 0 is no sharpness, 
+			up to 30 is pleasant, higher than 30 is really sharp (max 500).
+	
+		*JPEG quality*
+			You can define the JPEG quality for a term from 100, which is best, 
+			down to 70, which is pleasant.
+			
+		*Prevent cache*
+			For developping, you might will see changes of the setup on every 
+			page-reload. Then setup:
+				config['browser_cache'] = 0;
+				$config['prevent_cache'] = TRUE;
+			
+		*Debug mode*
+			This inserts some informations into the image.
+			**image dimensions
+			**the aspect ratio
+			**the device-width
+			
 h2. Legal
 
+Adaptive Images (is forked and adapted from original "Adaptive Images" by Matt Wilcox)
 Adaptive Images by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/

@@ -37,7 +37,7 @@ h3. The more spezific behavior:
 *Breakpoints and sizes*
 Now you can define, what size an image has to have on spezific configurable 
 breakpoints equal to your media-queries. Just start with an default 
-breakpoint  and size 0. If you do not setup an higher breakpoint than 0, 
+breakpoint  and size 0. If you do not setup another breakpoint higher than 0, 
 the image will be this size on every device-dimensions. You can set the 
 width in pixel or percentage. If you use for instance 100% in this case, 
 the image will be 100% the size of the resolution, that is equal or 

@@ -264,9 +264,8 @@
 			$transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
 			imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
 		}
-	
+    
 		ImageCopyResampled($dst, $src, $start_x, $start_y, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
-	
 		// debug mode
 		global $debug_mode;
 		if($debug_mode) {
@@ -286,8 +285,10 @@
 			$amount = $config['sharpen']['amount']; // max 500
 			$radius = '1'; // 50
 			$threshold = '0'; // max 255
-		
-			if($amount !== '0') $dst = UnsharpMask($dst, $amount, $radius, $threshold);
+		    
+		    if ( strtolower($extension) == 'jpg' OR strtolower($extension) == 'jpeg') {
+			    if($amount !== '0') $dst = UnsharpMask($dst, $amount, $radius, $threshold);
+			}
 		}
 
 		$cache_dir = dirname($cache_file);

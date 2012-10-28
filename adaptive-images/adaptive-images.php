@@ -22,6 +22,7 @@
     $breakpoints        = $config['breakpoints']; // the image break-points to use in the src-parameter 
     $cache_path         = $config['cache_path']; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
     $jpg_quality        = $config['jpg_quality']; // the quality of any generated JPGs on a scale of 0 to 100
+    $jpg_quality_retina = $config['jpg_quality_retina']; // the quality of any generated JPGs on a scale of 0 to 100 for retina
     $sharpen            = $config['sharpen']['status']; // Shrinking images can blur details, perform a sharpen on re-scaled images?
     $watch_cache        = $config['watch_cache']; // check that the adapted image isn't stale (ensures updated source images are re-cached)
     $browser_cache      = $config['browser_cache']; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
@@ -32,6 +33,7 @@
     
     if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
     if( isset($setup[$_GET['size']]['jpg_quality']) ) $jpg_quality = $setup[$_GET['size']]['jpg_quality'];
+    if( isset($setup[$_GET['size']]['jpg_quality_retina']) ) $jpg_quality_retina = $setup[$_GET['size']]['jpg_quality_retina'];
 
     /* get the image size and build the breakpoint-string */
     if($_GET['size']) {
@@ -185,7 +187,7 @@
     /* generates the given cache file for the given source file with the given resolution */
     function generateImage($source_file, $cache_file, $resolution) {
     
-        global $sharpen, $jpg_quality, $setup_ratio_arr;
+        global $sharpen, $jpg_quality, $jpg_quality_retina, $setup_ratio_arr;
 
         $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -363,7 +365,8 @@
                 $pixel_density = $cookie_data[1];
             }
             if ( $pixel_density != 2 ) $pixel_density = 1;
-        
+            if ( $pixel_density == 2 ) $jpg_quality = $jpg_quality_retina;
+            
             rsort($resolutions); // make sure the supplied break-points are in reverse size order
             $resolution = $resolutions[0]; // by default use the largest supported break-point
 
@@ -435,7 +438,9 @@
         $ratio_slug = '-' . $setup_ratio_arr[0] . '-' . $setup_ratio_arr[1];
     }
     
-    $cache_file = $document_root."/$cache_path/$resolution$ratio_slug/".$requested_uri;
+    $pixel_density_slug = '-' . $pixel_density;
+     
+    $cache_file = $document_root."/$cache_path/$resolution$pixel_density_slug$ratio_slug/".$requested_uri;
     
     
     

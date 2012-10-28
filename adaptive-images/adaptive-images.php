@@ -430,8 +430,15 @@
 	}
 
 	/* whew might the cache file be? */
-	$cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;
-
+	$ratio_slug = '';
+	if( $setup_ratio_arr ) {
+        $ratio_slug = '-' . $setup_ratio_arr[0] . '-' . $setup_ratio_arr[1];
+    }
+    
+	$cache_file = $document_root."/$cache_path/$resolution$ratio_slug/".$requested_uri;
+    
+    
+    
 	/* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
 	if (file_exists($cache_file)) { // it exists cached at that size
 		if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale

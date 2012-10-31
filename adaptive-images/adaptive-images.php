@@ -46,10 +46,10 @@
         $param = implode( '_', $param_array );
         $_GET['bp'] = $param;
     }
-
+    
     /* get the image parameter-string and convert it into an array */
     if( isset($_GET['bp']) ) {
-
+    
         $temp = explode('_', $_GET['bp']);
         foreach($temp as $key => $item)  {
             $arr = explode('-', $item);
@@ -65,6 +65,8 @@
             }
         }
     }
+
+
 
     /* get all of the required data from the HTTP request */
     $document_root  = $_SERVER['DOCUMENT_ROOT'];
@@ -221,7 +223,10 @@
     
         $debug_width = $new_width;
         $debug_height = $new_height;
-    
+        
+        $start_x = 0;
+        $start_y = 0;
+        
         if ( $setup_ratio_arr ) {
         
             // set height for new image 
@@ -236,8 +241,7 @@
             $debug_height = $ini_new_height;
         
             // set new width and height for skaleing image to fit new height
-            $start_x = 0;
-            $start_y = 0;
+            
             if($ini_new_height > $new_height) {
                 $crop_factor = $ini_new_height / $new_height;
                 $temp_new_width = ceil($new_width * $crop_factor);

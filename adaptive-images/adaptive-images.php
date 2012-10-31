@@ -29,14 +29,17 @@
     $debug_mode         = $config['debug_mode']; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
     $prevent_cache      = $config['prevent_cache']; // always generate and deliver new images
     $setup_ratio_arr    = FALSE;
-    if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr  = explode(':', $setup[$_GET['size']]['ratio']);
     
-    if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
-    if( isset($setup[$_GET['size']]['jpg_quality']) ) $jpg_quality = $setup[$_GET['size']]['jpg_quality'];
-    if( isset($setup[$_GET['size']]['jpg_quality_retina']) ) $jpg_quality_retina = $setup[$_GET['size']]['jpg_quality_retina'];
-
-    /* get the image size and build the breakpoint-string */
-    if($_GET['size']) {
+    if ( isset($_GET['size']) ) {
+    
+        if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr  = explode(':', $setup[$_GET['size']]['ratio']);
+    
+        if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
+        if( isset($setup[$_GET['size']]['jpg_quality']) ) $jpg_quality = $setup[$_GET['size']]['jpg_quality'];
+        if( isset($setup[$_GET['size']]['jpg_quality_retina']) ) $jpg_quality_retina = $setup[$_GET['size']]['jpg_quality_retina'];
+    
+    
+        /* get the image size and build the breakpoint-string */
         foreach($setup[$_GET['size']]['breakpoints'] as $key => $value) {
             $param_array[] = $key . '-' . $value;
         }
@@ -45,7 +48,8 @@
     }
 
     /* get the image parameter-string and convert it into an array */
-    if($_GET['bp']) {
+    if( isset($_GET['bp']) ) {
+
         $temp = explode('_', $_GET['bp']);
         foreach($temp as $key => $item)  {
             $arr = explode('-', $item);
@@ -103,6 +107,7 @@
 
     /* helper function: Send headers and returns an image. */
     function sendImage($filename, $browser_cache) {
+        
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         if (in_array($extension, array('png', 'gif', 'jpeg'))) {
             header("Content-Type: image/".$extension);
@@ -449,7 +454,7 @@
         if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
             $cache_file = refreshCache($source_file, $cache_file, $resolution);
         }
-
+        
         sendImage($cache_file, $browser_cache);
     }
 

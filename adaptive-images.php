@@ -50,8 +50,8 @@ if (!is_dir("$document_root/$cache_path")) { // no
   }
 }
 
-if (!is_writable($cache_dir)) {
-    sendErrorImage("The cache directory is not writable: $cache_dir");
+if (!is_writable("$document_root/$cache_path")) {
+    sendErrorImage("The cache directory is not writable: $document_root/$cache_path");
 }
 
 /* helper function: Send headers and returns an image. */

@@ -165,7 +165,8 @@ function generateImage($source_file, $cache_file, $resolution) {
   if ($imagemeta[2] === IMAGETYPE_JPEG) {
     ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
   }
-  elseif ($imagemeta[2] === IMAGETYPE_PNG) {
+  elseif ($imagemeta[2] === IMAGETYPE_PNG && $imagemeta["bits"] > 1) {
+    // save alpha for png's that have the alpha channel
     imagealphablending($dst, false);
     imagesavealpha($dst,true);
     $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);

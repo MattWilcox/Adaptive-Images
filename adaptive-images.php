@@ -30,7 +30,7 @@ $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
 
-/* Mobile detection 
+/* Mobile detection
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
@@ -38,11 +38,7 @@ function is_mobile() {
 }
 
 /* Does the UA string indicate this is a mobile? */
-if(!is_mobile()){
-  $is_mobile = FALSE;
-} else {
-  $is_mobile = TRUE;
-}
+$is_mobile = is_mobile();
 
 // does the $cache_path directory exist already?
 if (!is_dir("$document_root/$cache_path")) { // no
@@ -170,7 +166,7 @@ function generateImage($source_file, $cache_file, $resolution) {
     $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
     imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
   }
-  
+
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
   ImageDestroy($src);
 
@@ -189,7 +185,7 @@ function generateImage($source_file, $cache_file, $resolution) {
   $cache_dir = dirname($cache_file);
 
   // does the directory exist already?
-  if (!is_dir($cache_dir)) { 
+  if (!is_dir($cache_dir)) {
     if (!mkdir($cache_dir, 0755, true)) {
       // check again if it really doesn't exist to protect against race conditions
       if (!is_dir($cache_dir)) {

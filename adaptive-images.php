@@ -133,8 +133,6 @@ function refreshCache($source_file, $cache_file, $resolution) {
 function generateImage($source_file, $cache_file, $resolution) {
   global $sharpen, $jpg_quality;
 
-  $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
-
   // Check the image dimensions
   $imagemeta    = GetImageSize($source_file);
 

@@ -77,7 +77,7 @@ function sendErrorImage($message) {
   $requested_file = basename($requested_uri);
   $source_file    = $document_root.$requested_uri;
 
-  if(!is_mobile()){
+  if (!is_mobile()){
     $is_mobile = "FALSE";
   } else {
     $is_mobile = "TRUE";
@@ -169,7 +169,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 
   // sharpen the image?
   // NOTE: requires PHP compiled with the bundled version of GD (see http://php.net/manual/en/function.imageconvolution.php)
-  if($sharpen == TRUE && function_exists('imageconvolution')) {
+  if ($sharpen == TRUE && function_exists('imageconvolution')) {
     $intSharpness = findSharp($width, $new_width);
     $arrMatrix = array(
       array(-1, -2, -1),
@@ -236,11 +236,11 @@ if (isset($_COOKIE['resolution'])) {
     $resolution = $resolutions[0]; // by default use the largest supported break-point
 
     // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
-    if($pixel_density != 1) {
+    if ($pixel_density != 1) {
       $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
       // the required image width is bigger than any existing value in $resolutions
-      if($total_width > $resolutions[0]){
+      if ($total_width > $resolutions[0]){
         // firstly, fit the CSS size into a break point ignoring the multiplier
         foreach ($resolutions as $break_point) { // filter down
           if ($total_width <= $break_point) {
@@ -276,7 +276,7 @@ if (!$resolution) {
 }
 
 /* if the requested URL starts with a slash, remove the slash */
-if(substr($requested_uri, 0,1) == "/") {
+if (substr($requested_uri, 0,1) == "/") {
   $requested_uri = substr($requested_uri, 1);
 }
 

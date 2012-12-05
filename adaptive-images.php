@@ -235,7 +235,7 @@ if (isset($_COOKIE['resolution'])) {
     $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
     $total_width   = $client_width;
     $pixel_density = 1; // set a default, used for non-retina style JS snippet
-    if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
+    if (isset($cookie_data[1]) && $cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
       $pixel_density = $cookie_data[1];
     }
 

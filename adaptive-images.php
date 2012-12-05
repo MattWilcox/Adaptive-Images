@@ -136,9 +136,9 @@ function generateImage($source_file, $cache_file, $resolution) {
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
   // Check the image dimensions
-  $dimensions   = GetImageSize($source_file);
-  $width        = $dimensions[0];
-  $height       = $dimensions[1];
+  $imagemeta    = GetImageSize($source_file);
+  $width        = $imagemeta[0];
+  $height       = $imagemeta[1];
 
   // Do we need to downscale the image?
   if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
@@ -151,20 +151,13 @@ function generateImage($source_file, $cache_file, $resolution) {
   $new_height = ceil($new_width * $ratio);
   $dst        = ImageCreateTrueColor($new_width, $new_height); // re-sized image
 
-  switch ($extension) {
-    case 'png':
-      $src = @ImageCreateFromPng($source_file); // original image
-    break;
-    case 'gif':
-      $src = @ImageCreateFromGif($source_file); // original image
-    break;
-    default:
-      $src = @ImageCreateFromJpeg($source_file); // original image
-      ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
-    break;
-  }
+  $srcimageinfo = GetImageSize($source_file);
+  $src = ImageCreateFromString(file_get_contents($source_file));
 
-  if($extension=='png'){
+  if ($imagemeta[2] === IMAGETYPE_JPEG) {
+    ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
+  }
+  elseif ($imagemeta[2] === IMAGETYPE_PNG) {
     imagealphablending($dst, false);
     imagesavealpha($dst,true);
     $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
@@ -187,11 +180,11 @@ function generateImage($source_file, $cache_file, $resolution) {
   }
 
   // save the new file in the appropriate path, and send a version to the browser
-  switch ($extension) {
-    case 'png':
+  switch ($imagemeta[2]) {
+    case IMAGETYPE_PNG:
       $gotSaved = ImagePng($dst, $cache_file);
     break;
-    case 'gif':
+    case IMAGETYPE_GIF:
       $gotSaved = ImageGif($dst, $cache_file);
     break;
     default:

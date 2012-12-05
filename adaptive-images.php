@@ -182,22 +182,9 @@ function generateImage($source_file, $cache_file, $resolution) {
     imageconvolution($dst, $arrMatrix, $intSharpness, 0);
   }
 
-  $cache_dir = dirname($cache_file);
-
-  // does the directory exist already?
-  if (!is_dir($cache_dir)) {
-    if (!mkdir($cache_dir, 0755, true)) {
-      // check again if it really doesn't exist to protect against race conditions
-      if (!is_dir($cache_dir)) {
-        // uh-oh, failed to make that directory
-        ImageDestroy($dst);
-        sendErrorImage("Failed to create cache directory: $cache_dir");
-      }
-    }
-  }
-
   if (!is_writable($cache_dir)) {
     sendErrorImage("The cache directory is not writable: $cache_dir");
+    ImageDestroy($dst);
   }
 
   // save the new file in the appropriate path, and send a version to the browser

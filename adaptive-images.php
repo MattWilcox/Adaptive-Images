@@ -180,22 +180,22 @@ function generateImage($source_file, $cache_file, $resolution) {
   }
 
   // save the new file in the appropriate path, and send a version to the browser
-  $gotSaved = false;
+  $wasSaved = false;
 
   switch ($imagemeta[2]) {
     case IMAGETYPE_PNG:
-      $gotSaved = ImagePng($dst, $cache_file);
+      $wasSaved = ImagePng($dst, $cache_file);
     break;
     case IMAGETYPE_GIF:
-      $gotSaved = ImageGif($dst, $cache_file);
+      $wasSaved = ImageGif($dst, $cache_file);
     break;
     default:
-      $gotSaved = ImageJpeg($dst, $cache_file, $jpg_quality);
+      $wasSaved = ImageJpeg($dst, $cache_file, $jpg_quality);
     break;
   }
   ImageDestroy($dst);
 
-  if (!$gotSaved && !file_exists($cache_file)) {
+  if (!$wasSaved && !file_exists($cache_file)) {
     sendErrorImage("Failed to create image: $cache_file");
   }
 
@@ -277,10 +277,8 @@ if (!$resolution) {
   $resolution = $is_mobile ? min($resolutions) : max($resolutions);
 }
 
-/* if the requested URL starts with a slash, remove the slash */
-if (substr($requested_uri, 0,1) == "/") {
-  $requested_uri = substr($requested_uri, 1);
-}
+/* trim any potential leading slashes */
+$requested_uri = ltrim($requested_uri, "/");
 
 /* whew might the cache file be? */
 $cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;

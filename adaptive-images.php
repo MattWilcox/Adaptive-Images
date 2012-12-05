@@ -281,7 +281,7 @@ if (!$resolution) {
 $requested_uri = ltrim($requested_uri, "/");
 
 /* whew might the cache file be? */
-$cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;
+$cache_file = $document_root."/$cache_path/$resolution.".$requested_uri;
 
 /* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
 if (file_exists($cache_file)) { // it exists cached at that size

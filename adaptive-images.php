@@ -50,6 +50,10 @@ if (!is_dir("$document_root/$cache_path")) { // no
   }
 }
 
+if (!is_writable($cache_dir)) {
+    sendErrorImage("The cache directory is not writable: $cache_dir");
+}
+
 /* helper function: Send headers and returns an image. */
 function sendImage($filename, $browser_cache) {
   $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -180,11 +184,6 @@ function generateImage($source_file, $cache_file, $resolution) {
       array(-1, -2, -1)
     );
     imageconvolution($dst, $arrMatrix, $intSharpness, 0);
-  }
-
-  if (!is_writable($cache_dir)) {
-    sendErrorImage("The cache directory is not writable: $cache_dir");
-    ImageDestroy($dst);
   }
 
   // save the new file in the appropriate path, and send a version to the browser

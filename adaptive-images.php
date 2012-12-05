@@ -137,6 +137,12 @@ function generateImage($source_file, $cache_file, $resolution) {
 
   // Check the image dimensions
   $imagemeta    = GetImageSize($source_file);
+
+  if ($imagemeta === false) {
+    // Either an unsupported image type or not an image
+    sendErrorImage("Failed to read source image: $source_file");
+  }
+
   $width        = $imagemeta[0];
   $height       = $imagemeta[1];
 
@@ -153,6 +159,10 @@ function generateImage($source_file, $cache_file, $resolution) {
 
   $srcimageinfo = GetImageSize($source_file);
   $src = ImageCreateFromString(file_get_contents($source_file));
+
+  if ($src === false) {
+    sendErrorImage("Failed to read source image: $source_file");
+  }
 
   if ($imagemeta[2] === IMAGETYPE_JPEG) {
     ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)

@@ -180,6 +180,8 @@ function generateImage($source_file, $cache_file, $resolution) {
   }
 
   // save the new file in the appropriate path, and send a version to the browser
+  $gotSaved = false;
+
   switch ($imagemeta[2]) {
     case IMAGETYPE_PNG:
       $gotSaved = ImagePng($dst, $cache_file);

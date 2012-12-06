@@ -213,7 +213,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 
 // check if the file exists at all
 if (!file_exists($source_file)) {
-  header("Status: 404 Not Found");
+  header("Not Found", true, 404);
   exit();
 }
 

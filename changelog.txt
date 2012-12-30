@@ -1,3 +1,7 @@
+  ENHANCEMENT
+    * The program "jpegicc" can be used to automatically convert all JPEG-images with
+      embedded color profiles into sRGB.
+
 version 1.5.2 (2012/04/16) ------------------------------------------------------------
 
   BUG FIX

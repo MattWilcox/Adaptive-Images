@@ -18,6 +18,8 @@ $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$jpegicc       = null;
+#$jpegicc      = "jpegicc"; // Path to the "jpegicc" program, which converts color profiles embedded into JPEG-Files into the sRPB colorspace. In debian-based systems, it is contained in the package "liblcms-utils"
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -131,7 +133,7 @@ function refreshCache($source_file, $cache_file, $resolution) {
 
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution) {
-  global $sharpen, $jpg_quality;
+  global $sharpen, $jpg_quality, $jpegicc;
 
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -159,7 +161,13 @@ function generateImage($source_file, $cache_file, $resolution) {
       $src = @ImageCreateFromGif($source_file); // original image
     break;
     default:
-      $src = @ImageCreateFromJpeg($source_file); // original image
+      if ($jpegicc !== null) {
+        exec($jpegicc . " '" . addslashes($source_file) . "' '" . addslashes($cache_file) . ".tmp.jpg'");
+        $src = @ImageCreateFromJpeg($cache_file . ".tmp.jpg");
+        unlink($cache_file . ".tmp.jpg");
+      } else {
+        $src = @ImageCreateFromJpeg($source_file); // original image
+      }
       ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
     break;
   }

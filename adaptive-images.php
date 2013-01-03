@@ -29,8 +29,9 @@ $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
+$retina         = FALSE;
 
-/* Mobile detection 
+/* Mobile detection
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
@@ -130,7 +131,7 @@ function refreshCache($source_file, $cache_file, $resolution) {
 }
 
 /* generates the given cache file for the given source file with the given resolution */
-function generateImage($source_file, $cache_file, $resolution) {
+function generateImage($source_file, $cache_file, $resolution, $retina) {
   global $sharpen, $jpg_quality;
 
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
@@ -170,7 +171,7 @@ function generateImage($source_file, $cache_file, $resolution) {
     $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
     imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
   }
-  
+
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
   ImageDestroy($src);
 
@@ -189,7 +190,7 @@ function generateImage($source_file, $cache_file, $resolution) {
   $cache_dir = dirname($cache_file);
 
   // does the directory exist already?
-  if (!is_dir($cache_dir)) { 
+  if (!is_dir($cache_dir)) {
     if (!mkdir($cache_dir, 0755, true)) {
       // check again if it really doesn't exist to protect against race conditions
       if (!is_dir($cache_dir)) {
@@ -264,6 +265,17 @@ if (isset($_COOKIE['resolution'])) {
     if($pixel_density != 1) {
       $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
+      // @2x retina-image replacement
+      $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
+      $retina_file = str_replace(".$extension", "@2x.$extension", $source_file);
+
+      // check if the file exists at all
+      if (file_exists($retina_file)) {
+        $requested_uri = str_replace(".$extension", "@2x.$extension", $requested_uri);
+        $source_file = $retina_file;
+        $retina = TRUE;
+      }
+
       // the required image width is bigger than any existing value in $resolutions
       if($total_width > $resolutions[0]){
         // firstly, fit the CSS size into a break point ignoring the multiplier
@@ -318,5 +330,5 @@ if (file_exists($cache_file)) { // it exists cached at that size
 }
 
 /* It exists as a source file, and it doesn't exist cached - lets make one: */
-$file = generateImage($source_file, $cache_file, $resolution);
+$file = generateImage($source_file, $cache_file, $resolution, $retina);
 sendImage($file, $browser_cache);

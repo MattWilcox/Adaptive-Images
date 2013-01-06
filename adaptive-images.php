@@ -18,6 +18,7 @@ $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$retina_suffix = "@2x"; // string to append to high-resolution images (e.g. image.png -> image@2x.png)
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -267,11 +268,11 @@ if (isset($_COOKIE['resolution'])) {
 
       // @2x retina-image replacement
       $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
-      $retina_file = str_replace(".$extension", "@2x.$extension", $source_file);
+      $retina_file = str_replace(".$extension", "$retina_suffix.$extension", $source_file);
 
       // check if the file exists at all
       if (file_exists($retina_file)) {
-        $requested_uri = str_replace(".$extension", "@2x.$extension", $requested_uri);
+        $requested_uri = str_replace(".$extension", "$retina_suffix.$extension", $requested_uri);
         $source_file = $retina_file;
         $retina = TRUE;
       }

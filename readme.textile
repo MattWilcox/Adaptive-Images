@@ -4,7 +4,7 @@ Is a solution to automatically create, cache, and deliver device-appropriate ver
 
 h2. Benefits
 
-* Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.
+* Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the visitor needs.
 * Will work on your existing site, as it requires no changes to your mark-up.
 * Is device agnostic (it works by detecting the size of the visitors screen)
 * Is CMS agnostic (it manages its own image re-sizing, and will work on any CMS or even on flat HTML pages)

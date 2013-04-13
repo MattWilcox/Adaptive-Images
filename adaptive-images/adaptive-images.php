@@ -373,14 +373,14 @@
             if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
                 $pixel_density = $cookie_data[1];
             }
-            if ( $pixel_density != 2 ) $pixel_density = 1;
-            if ( $pixel_density == 2 ) $jpg_quality = $jpg_quality_retina;
+            //if ( $pixel_density != 2 ) $pixel_density = 1;
+            if ( $pixel_density > 1 ) $jpg_quality = $jpg_quality_retina;
             
             rsort($resolutions); // make sure the supplied break-points are in reverse size order
             $resolution = $resolutions[0]; // by default use the largest supported break-point
 
             // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
-            if($pixel_density != 1) {
+            if($pixel_density > 1) {
                 $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
                 // the required image width is bigger than any existing value in $resolutions

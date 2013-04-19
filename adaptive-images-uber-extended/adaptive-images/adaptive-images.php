@@ -1,37 +1,50 @@
 <?php
 
-    /* Adaptive Images (is forked and adapted from original "Adaptive Images" by Matt Wilcox) {
-    
-        forked from:
-            GitHub:     https://github.com/MattWilcox/Adaptive-Images
-            Version:    1.5.2
-            Homepage:   http://adaptive-images.com
-            Twitter:    @responsiveimg
-            LEGAL:      Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
-        
-        forked and adapted by:
-            GitHub:     https://github.com/johannheyne/Adaptive-Images
-            Version:    1
-        
-    } */
+/*
+ * 
+ * 
+ * CORE FILE OF ADAPTIVE IMAGES (ÜBER-EXTENDED)
+ * 
+ * 
+ * Adaptive Images (über-extendend) is forked from Adaptive Images (extended) by Johann Heyne
+ * 
+ * 		GitHub:		https://github.com/johannheyne/Adaptive-Images
+ * 		Version:		1.5.2.1 (back then)
+ * 
+ * Adaptive Images (extendent) is forked from Adaptive Images by Matt Wilcox
+ * 
+ * 		GitHub:   	https://github.com/MattWilcox/Adaptive-Images
+ * 		Homepage:		http://adaptive-images.com
+ * 		Twitter:    	@responsiveimg
+ * 		LEGAL:      	Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
+ * 		
+ * 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	// Fetch our outsourced settings and fill the variables below
     include('setup.php');
 
-    $enable_resolutions = $config['enable_resolutions']; // the resolution break-points to use (screen widths, in pixels)
-    $resolutions        = $config['resolutions']; // the resolution break-points to use (screen widths, in pixels)
-    $breakpoints        = $config['breakpoints']; // the image break-points to use in the src-parameter 
-    $cache_path         = $config['cache_path']; // @ Johann Heyne where to store the generated re-sized images. Specify from your document root!
-    $jpg_quality        = $config['jpg_quality']; // the quality of any generated JPGs on a scale of 0 to 100
-    $jpg_quality_retina = $config['jpg_quality_retina']; // the quality of any generated JPGs on a scale of 0 to 100 for retina
-    $sharpen            = $config['sharpen']['status']; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-    $watch_cache        = $config['watch_cache']; // check that the adapted image isn't stale (ensures updated source images are re-cached)
-    $browser_cache      = $config['browser_cache']; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-    $debug_mode         = $config['debug_mode']; // Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
-    $prevent_cache      = $config['prevent_cache']; // always generate and deliver new images
-    $setup_ratio_arr    = FALSE;
+    $enable_resolutions = $config['enable_resolutions']; 	// The resolution break-points to use (screen widths, in pixels)
+    $resolutions        = $config['resolutions']; 			// The resolution break-points to use (screen widths, in pixels)
+    $breakpoints        = $config['breakpoints'];			// The image break-points to use in the src-parameter 
+    $scalings		    = $config['scalings']; 				// NEW in AIue: the width of the generated images corresponting to the breakpoints
+    $cache_path         = $config['cache_path']; 			// Where to store the generated re-sized images. Specify from your document root!
+    $jpg_quality        = $config['jpg_quality']; 			// The quality of any generated JPGs on a scale of 0 to 100
+    $jpg_quality_retina = $config['jpg_quality_retina']; 	// The quality of any generated JPGs on a scale of 0 to 100 for retina
+    $sharpen            = $config['sharpen']['status']; 	// Shrinking images can blur details, perform a sharpen on re-scaled images?
+    $watch_cache        = $config['watch_cache']; 			// Check that the adapted image isn't stale (ensures updated source images are re-cached)
+    $browser_cache      = $config['browser_cache']; 		// How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+    $debug_mode         = $config['debug_mode']; 			// Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
+    $prevent_cache      = $config['prevent_cache']; 		// always generate and deliver new images
+    $setup_ratio_arr    = FALSE;							// Initializing variable for use afterwards
     
+	
+	
+	
+	// Adaptive Images starts here
+	
     if ( isset($_GET['size']) ) {
-    
+        
         if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr  = explode(':', $setup[$_GET['size']]['ratio']);
     
         if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
@@ -45,7 +58,33 @@
         }
         $param = implode( '_', $param_array );
         $_GET['bp'] = $param;
+	 
+	 
+	 
+	 // Check query string whether to serve the source file
+	 // Reserved value for size param: 'original', 'full', 'fullsize', 'source', 'src', '100%'
+	 if ( ($_GET['size'] == 'original') 
+	   or ($_GET['size'] == 'full')
+	   or ($_GET['size'] == 'fullsize') 
+	   or ($_GET['size'] == 'source')
+	   or ($_GET['size'] == 'src')
+	   or ($_GET['size'] == '100%') ) { 
+	 	$original_requested = true;
+	 }
+
     }
+
+	// The 'shortcut'
+	// When just the param is used, without any value, to request the original picture 
+	// Just another check if the original image is requested
+	if ( isset($_GET['original']) 
+	  or isset($_GET['full'])
+	  or ($_GET['size'] == 'fullsize')
+	  or isset($_GET['source'])
+	  or isset($_GET['src'])
+	  or isset($_GET['100%']) ) {
+		$original_requested = true;		
+	}
     
     /* get the image parameter-string and convert it into an array */
     if( isset($_GET['bp']) ) {
@@ -82,6 +121,15 @@
         }
     }
 
+	
+	// Is the original full size image requested?
+	if ( $original_requested ) {
+	     sendImage($source_file, $browser_cache);
+            die();
+		
+	}
+
+
     /* Mobile detection 
     NOTE: only used in the event a cookie isn't available. */
     function is_mobile() {
@@ -97,11 +145,11 @@
         $is_mobile = TRUE;
     }
 
-    // does the $cache_path directory exist already?
-    if (!is_dir("$document_root/$cache_path")) { // no
-        if (!mkdir("$document_root/$cache_path", 0755, true)) { // so make it
-            if (!is_dir("$document_root/$cache_path")) { // check again to protect against race conditions
-                // uh-oh, failed to make that directory
+    /* does the $cache_path directory exist already? */
+    if (!is_dir("$document_root/$cache_path")) { 					/* no */
+        if (!mkdir("$document_root/$cache_path", 0755, true)) { 	/* so make it */
+            if (!is_dir("$document_root/$cache_path")) { 			/* check again to protect against race conditions */
+                /* uh-oh, failed to make that directory */
                 sendErrorImage("Failed to create cache directory at: $document_root/$cache_path");
             }
         }
@@ -174,18 +222,18 @@
     /* refreshes the cached image if it's outdated */
     function refreshCache($source_file, $cache_file, $resolution) {
 
-        // prevents caching by config ($prevent_cache and $debug mode)
+        /* prevents caching by config ($prevent_cache and $debug mode) */
         global $debug_mode;
         global $prevent_cache;
         if($prevent_cache) unlink($cache_file);
 
         if (file_exists($cache_file)) {
-            // not modified
+            /* not modified */
             if (filemtime($cache_file) >= filemtime($source_file)) {
                 return $cache_file;
             }
 
-            // modified, clear it
+            /* modified, clear it */
             unlink($cache_file);
         }
         return generateImage($source_file, $cache_file, $resolution);
@@ -198,19 +246,19 @@
 
         $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
-        // Check the image dimensions
+        /* Check the image dimensions */
         $dimensions   = GetImageSize($source_file);
         $width        = $dimensions[0];
         $height       = $dimensions[1];
 
-        // Do we need to downscale the image?
+        /* Do we need to downscale the image? */
         /* because of cropping, we need to prozess the image
         if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
             return $source_file;
         }
         */
     
-        // We need to resize the source image to the width of the resolution breakpoint we're working with
+        /* We need to resize the source image to the width of the resolution breakpoint we're working with */
         $ratio = $height / $width;
         if ($width <= $resolution) {
             $new_width  = $width;
@@ -229,18 +277,18 @@
         
         if ( $setup_ratio_arr ) {
         
-            // set height for new image 
+            /* set height for new image */ 
             $orig_ratio = $new_width / $new_height;
             $crop_ratio = $setup_ratio_arr[0] / $setup_ratio_arr[1];
             $ratio_diff = $orig_ratio / $crop_ratio;
             $ini_new_height = ceil($new_height * $ratio_diff);
         
-            $dst = ImageCreateTrueColor($new_width, $ini_new_height); // re-sized image
+            $dst = ImageCreateTrueColor($new_width, $ini_new_height); /* re-sized image */
         
             $debug_width = $new_width;
             $debug_height = $ini_new_height;
         
-            // set new width and height for skaleing image to fit new height
+            /* set new width and height for skaleing image to fit new height */
             
             if($ini_new_height > $new_height) {
                 $crop_factor = $ini_new_height / $new_height;
@@ -254,19 +302,19 @@
             }
         }
         else {
-            $dst = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+            $dst = ImageCreateTrueColor($new_width, $new_height); /* re-sized image */
         }
     
         switch ($extension) {
             case 'png':
-            $src = @ImageCreateFromPng($source_file); // original image
+            $src = @ImageCreateFromPng($source_file); 	/* original image */
             break;
             case 'gif':
-            $src = @ImageCreateFromGif($source_file); // original image
+            $src = @ImageCreateFromGif($source_file); 	/* original image */
             break;
             default:
-            $src = @ImageCreateFromJpeg($source_file); // original image
-            ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
+            $src = @ImageCreateFromJpeg($source_file); 	/* original image */
+            ImageInterlace($dst, true); 				/* Enable interlancing (progressive JPG, smaller size file) */
             break;
         }
         if($extension=='png') {
@@ -276,26 +324,31 @@
             imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
         }
     
-        ImageCopyResampled($dst, $src, $start_x, $start_y, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
-        // debug mode
+        ImageCopyResampled($dst, $src, $start_x, $start_y, 0, 0, $new_width, $new_height, $width, $height); /* do the resize in memory */
+        
+        /* debug mode */
         global $debug_mode;
         if($debug_mode) {
-            // write a textstring with the dimensions
-            $color = imagecolorallocate($dst, 255, 255, 255); // ugly red 
+            /* write a textstring with the dimensions */
+            $color = imagecolorallocate($dst, 255, 0, 255); // Use fresh magenta 
             $cookie_data = explode(',', $_COOKIE['resolution']);
             $debug_ratio = false;
-            if( $setup_ratio_arr ) $debug_ratio = $setup_ratio_arr[0] . ':' . $setup_ratio_arr[1];
-            imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' ' . $debug_ratio . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]),$color);
+	     if( $setup_ratio_arr ) $debug_ratio = $setup_ratio_arr[0] . ':' . $setup_ratio_arr[1];
+            imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' ' . $debug_ratio . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]) . $addonstring, $color);
+	     // Additional debug line
+	     $addonstring = $_GET['size'];
+	     imagestring( $dst, 5, 10, 20, $addonstring, $color);
+			     
         }
 
         ImageDestroy($src);
 
-        // sharpen the image
+        /* sharpen the image */
         if($sharpen == TRUE) {
             global $config;
-            $amount = $config['sharpen']['amount']; // max 500
-            $radius = '1'; // 50
-            $threshold = '0'; // max 255
+            $amount = $config['sharpen']['amount']; /* max 500 */
+            $radius = '1'; /* 50 */
+            $threshold = '0'; /* max 255 */
             
             if ( strtolower($extension) == 'jpg' OR strtolower($extension) == 'jpeg') {
                 if($amount !== '0') $dst = UnsharpMask($dst, $amount, $radius, $threshold);
@@ -304,12 +357,12 @@
 
         $cache_dir = dirname($cache_file);
 
-        // does the directory exist already?
+        /* does the directory exist already? */
         if (!is_dir($cache_dir)) { 
             if (!mkdir($cache_dir, 0755, true)) {
-                // check again if it really doesn't exist to protect against race conditions
+                /* check again if it really doesn't exist to protect against race conditions */
                 if (!is_dir($cache_dir)) {
-                    // uh-oh, failed to make that directory
+                    /* uh-oh, failed to make that directory */
                     ImageDestroy($dst);
                     sendErrorImage("Failed to create cache directory: $cache_dir");
                 }
@@ -320,7 +373,7 @@
             sendErrorImage("The cache directory is not writable: $cache_dir");
         }
 
-        // save the new file in the appropriate path, and send a version to the browser
+        /* save the new file in the appropriate path, and send a version to the browser */
         switch ($extension) {
             case 'png':
             $gotSaved = ImagePng($dst, $cache_file);
@@ -341,16 +394,16 @@
         return $cache_file;
     }
 
-    // check if the file exists at all
+    /* check if the file exists at all */
     if (!file_exists($source_file)) {
         header("Status: 404 Not Found");
         exit();
     }
 
     /* check that PHP has the GD library available to use for image re-sizing */
-    if (!extension_loaded('gd')) { // it's not loaded
-        if (!function_exists('dl') || !dl('gd.so')) { // and we can't load it either
-            // no GD available, so deliver the image straight up
+    if (!extension_loaded('gd')) { 						/* it's not loaded */
+        if (!function_exists('dl') || !dl('gd.so')) { 	/* and we can't load it either */
+            /* no GD available, so deliver the image straight up */
             trigger_error('You must enable the GD extension to make use of Adaptive Images', E_USER_WARNING);
             sendImage($source_file, $browser_cache);
         }
@@ -360,58 +413,68 @@
     if (isset($_COOKIE['resolution']) ) {
         $cookie_value = $_COOKIE['resolution'];
     
-        // does the cookie look valid? [whole number, comma, potential floating number]
-        if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
-            setcookie("resolution", "$cookie_value", time()-100); // delete the mangled cookie
+        /* does the cookie look valid? [whole number, comma, potential floating number] */
+        if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { /* no it doesn't look valid */
+            setcookie("resolution", "$cookie_value", time()-100); /* delete the mangled cookie */
         }
         else {
-            // the cookie is valid, do stuff with it
+            /* the cookie is valid, do stuff with it */
             $cookie_data   = explode(",", $_COOKIE['resolution']);
-            $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
+            $client_width  = (int) $cookie_data[0]; /* the base resolution (CSS pixels) */
             $total_width   = $client_width;
-            $pixel_density = 1; // set a default, used for non-retina style JS snippet
-            if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
+            $pixel_density = 1; /* set a default, used for non-retina style JS snippet */
+            if (@$cookie_data[1]) { /* the device's pixel density factor (physical pixels per CSS pixel) */
                 $pixel_density = $cookie_data[1];
             }
-            //if ( $pixel_density != 2 ) $pixel_density = 1;
-            if ( $pixel_density > 1 ) $jpg_quality = $jpg_quality_retina;
+           
+           if ( $pixel_density > 1 ) $jpg_quality = $jpg_quality_retina;
             
-            rsort($resolutions); // make sure the supplied break-points are in reverse size order
-            $resolution = $resolutions[0]; // by default use the largest supported break-point
+            rsort($resolutions); /* make sure the supplied break-points are in reverse size order */
+            rsort($scalings);    /* same with scalings */
+            $resolution = $resolutions[0]; /* by default use the largest supported break-point */
 
-            // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
+            /* if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints */
             if($pixel_density > 1) {
-                $total_width = $client_width * $pixel_density; // required physical pixel width of the image
+                $total_width = $client_width * $pixel_density; /* required physical pixel width of the image */
 
-                // the required image width is bigger than any existing value in $resolutions
+                /* the required image width is bigger than any existing value in $resolutions */
                 if($total_width > $resolutions[0]) {
-                    // firstly, fit the CSS size into a break point ignoring the multiplier
-                    foreach ($resolutions as $break_point) { // filter down
+                    /* firstly, fit the CSS size into a break point ignoring the multiplier */
+                    foreach ($resolutions as $break_point) { /* filter down */
                         if ($total_width <= $break_point) {
-                            $resolution = $break_point;
+                        	// Introducing ['scalings'] here
+                        	$key = array_search($break_point, $resolutions);
+                            $resolution = $scalings[$key];
+                            /* $resolution = $break_point; */
                         }
                     }
-                    // now apply the multiplier
+                    /* now apply the multiplier */
                     $resolution = $resolution * $pixel_density;
                 }
-                //the required image fits into the existing breakpoints in $resolutions
+                /* the required image fits into the existing breakpoints in $resolutions */
                 else {
-                    foreach ($resolutions as $break_point) { // filter down
+                    foreach ($resolutions as $break_point) { /* filter down */
                         if ($total_width <= $break_point) {
-                            $resolution = $break_point;
+                            // Use ['scalings'] here too	
+                            $key = array_search($break_point, $resolutions);
+                            $resolution = $scalings[$key];
+                            /* $resolution = $break_point; */
                         }
                     }
                 }
             }
-            else { // pixel density is 1, just fit it into one of the breakpoints
-                foreach ($resolutions as $break_point) { // filter down
+            else { /* pixel density is 1, just fit it into one of the breakpoints */
+                foreach ($resolutions as $break_point) { /* filter down */
                     if ($total_width <= $break_point) {
-                        $resolution = $break_point;
+                    		// Yep: ['scalings']
+                        	$key = array_search($break_point, $resolutions);
+                            $resolution = $scalings[$key];                    	
+                        	/* $resolution = $break_point; */
                     }
                 }
             }
 
-            // recalculate the resolution depending on the image parameters
+            /* recalculate the resolution depending on the image parameters */
             if(isset($images_param)) {
                 foreach($images_param as $key => $item) {
                     global $breakpoints;
@@ -425,7 +488,7 @@
         }
     }
 
-    /* No resolution was found (no cookie or invalid cookie) */
+    /* FALLBACK when no resolution was found (no cookie or invalid cookie) */
     if (!$resolution) {
         // We send the lowest resolution for mobile-first approach, and highest otherwise
         // $resolution = $is_mobile ? min($resolutions) : max($resolutions);
@@ -449,13 +512,14 @@
     
     $pixel_density_slug = '-' . $pixel_density;
      
-    $cache_file = $document_root."/$cache_path/$resolution$pixel_density_slug$ratio_slug/".$requested_uri;
+    // Alternative concatenation; some wierd-looking directories are created sometimes, maybe this helps fixing this
+    $cache_file = $document_root . "/" . $cache_path . "/" . $resolution . $pixel_density_slug . $ratio_slug . "/" . $requested_uri;
     
     
     
     /* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
-    if (file_exists($cache_file)) { // it exists cached at that size
-        if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
+    if (file_exists($cache_file)) { /* it exists cached at that size */
+        if ($watch_cache) { /* if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale */
             $cache_file = refreshCache($source_file, $cache_file, $resolution);
         }
         
@@ -465,6 +529,22 @@
     /* It exists as a source file, and it doesn't exist cached - lets make one: */
     $file = generateImage($source_file, $cache_file, $resolution);
     sendImage($file, $browser_cache);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Additional sharpening function we don’t want to mess with
 
     function UnsharpMask($img, $amount, $radius, $threshold) {
 

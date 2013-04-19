@@ -1,0 +1,13 @@
+
+/////////////////////////////////////////////////////////////
+//                                                        //
+//   FANCY   W I S H   T O  D O   L I S T   FOR AIue     //
+//                                                      //
+/////////////////////////////////////////////////////////
+
+
+- implement ImageMagic if present on the server
+- maybe provide better resize quality and smaller filesize
+- convert color profiles, not only throw them away like GDlib
+- care of animaned gifs, maybe with gifsicle
+- use pngout for optimizing png files

@@ -1,3 +1,19 @@
+version 1.0.1 (2013-04-19) -----------------------------------------------------------
+
+	* Introduced ['scalings']: now the breakpoint sizes don’t dictate the resulting
+	  image widths any more. ['scalings'] are a corresponding array to ['resolutions']
+	  containing the desired image widths.
+	* Introducing "fullsize request" via query string.
+	  Reserved query params for this are: 'original', 'full', 'fullsize', 'source' and 'src'.
+	  Don’t use them as size terms, they are hardcoded and overriding it anyway. 
+	  Example usage: image.jpg?original or image.jpg?size=original etc.
+	* Added "Fancy Wish To Do List".
+	
+	# Appendum # to v1.0
+	* By default in setup.php: generation of ['breakpoints'] from 1% to 100%
+	  with smart sharpening according to resize amount.
+	
+
 version 1.0 (2013-04-19) --------------------------------------------------------------
 
 	* Refactored setup.php: new comments, new instructions

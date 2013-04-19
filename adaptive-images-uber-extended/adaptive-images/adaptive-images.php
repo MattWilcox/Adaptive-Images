@@ -21,7 +21,7 @@
  * 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// Fetch our outsourced settings and fill the variables below
+ 	// Fetch our outsourced settings and fill the variables below
     include('setup.php');
 
     $enable_resolutions = $config['enable_resolutions']; 	// The resolution break-points to use (screen widths, in pixels)

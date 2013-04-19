@@ -72,21 +72,21 @@
 	
 	// other caching settings
 	$config['browser_cache']        = 60 * 60 * 24;	// period of time in seconds the images will stay in cache of browsers	
-	$config['browser_cache']		  = 0;			// enable this line line during developement!
-	$config['prevent_cache']        = TRUE; 		// true: images will resized on every image request; default: false
+	//$config['browser_cache']		= 0;			// enable this line line during developement!
+	$config['prevent_cache']        = FALSE; 		// true: images will resized on every image request; default: false
 
 	// while developing: inserts information like image dimensions, ratio and the device-width into the image
-	$config['debug_mode']           = TRUE;			// default: false
+	$config['debug_mode']           = FALSE;			// default: false
 
-	
-	
+
+
 
  
 	// ORIGINAL BEHAVIOR – Matts original device resolution depending solution
 	// true: to have this original automatic resizer enabled; this is the default
 	// false: to only use the size terms in a query string and serve the original full res pic at a "native request"
 	$config['enable_resolutions']   = TRUE;  
-    
+
 	// Here are our breakpoints for the default behavior; screen widths in pixels
 	$config['resolutions']          = array(0, 320, 480, 640, 1080, 1440, 2048, 2880);
 

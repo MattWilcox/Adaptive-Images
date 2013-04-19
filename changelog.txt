@@ -1,3 +1,25 @@
+version 1.0 (2013-04-19) --------------------------------------------------------------
+
+	* Refactored setup.php: new comments, new instructions
+	* Refactored .htaccess to make it more feasible
+	* Updated readme.textile, updated changelog.txt to officially manifest the fork
+
+---------------------------------------------------------------------------------------
+
+
+
+
+//////////////////////////////////////////////////////////////
+//                                                         //
+//  Adaptive Images (über-extended) fork starts here      //
+//                                                       //
+//////////////////////////////////////////////////////////
+
+
+
+
+
+
 version 1.5.2.1 (2012/04/18) ------------------------------------------------------------
 
   NEW FEATURE

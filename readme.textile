@@ -23,19 +23,21 @@ h2. Benefits of Adaptive Images In General
 
 h2. How It Works
 * One line of JavaScript (uuuh!) sets a small cookie (ooouu!) containing the screen resolution and the pixel density of the users device when the page is about to load.
-* When an image is requested, .htaccess intercepts this request and passes it to adaptive-images.php, perfomring the logic to serve the approriate image size.
+* When an image is requested, .htaccess intercepts this request and passes it to adaptive-images.php, performing the logic to serve the appropriate image size.
 
 For further details on this concept, see Matt Wilcox’ original "Apaptive Images Homepage":http://adaptive-images.com/details.htm.
-And/or see * More Detailed Description* below for comparison between the forks.
+And/or see *More Detailed Description* below for comparison between the forks.
 
 h2. Install
 
-1. Add *<script>document.cookie = 'resolution=' + Math.max( screen.width, screen.height ) + ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1" ) + '; path=/';</script>* to your web pages <head> at the top most position possible. (See included adaptive-images-cookie-line.js.)
+1. Add the following line of JavaScript to your web pages head at the top most position possible. (See also included adaptive-images-cookie-line.js.)
+	document.cookie = 'resolution=' + Math.max( screen.width, screen.height ) + ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1" ) + '; path=/';
 2. Copy the adaptive-images folder into your web pages root directory.
 3. Make sure the permission of the adaptive-images directory and ai-cache subdirectory is (at least) *755*.
 4. Copy the .htaccess into your web pages root directory – or copy its code section in the existing .htaccess file.
 5. Set up path names in .htaccess with RewriteCond rules, to ignore images in ("blacklist") or simply make a "whitelist" of paths you wish AI to apply in.
 6. Just make sure *again* that the last RewriteRule contains the proper path leading to your adaptive-images.php. 
+7. Make use of setup.php.
 
 Alternatively put the .htaccess in your images directory for example, and/or the adaptive-images folder somewhere else on your server, but then *make sure that the RewriteRule points to the proper adaptive-images.php location* relative to your directory structure (step 6)! 
 

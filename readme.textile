@@ -1,74 +1,91 @@
-h1. Adaptive Images (extended)
+This is a fork of Johann Heynes (johannheyne) "Adaptive Images (extendend)", based on Matthew Wilcox (mattwilcox) original code and idea of "Adaptive Images". Thank you both!
 
-Is a solution to automatically create, cache, and deliver device-appropriate versions of your website's content images. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Image":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
 
-h2. Benefits
+h1. Adaptive Images (über-extended)
 
-* Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.
-* Is device agnostic (it works by detecting the size of the visitors screen)
-* Is CMS agnostic (it manages its own image re-sizing, and will work on any CMS or even on flat HTML pages)
-* Highly configurable
+*Adaptive Images* (AI) automatically creates, caches, and delivers device-appropriate versions of a website's content images. "Device-appropriate" in respect to device width and device pixel ratio. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Images":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
+
+*Adaptive Images (extended)* (AIe) then added (complicated sounding) functionality to control generated image size (and quality and many other details) in respect to given design breakpoints – corresponding to the users device width – via a url query string when the image actually is going to be requested. To set this up, one needed to define the ['terms'] ( = size terms = future query strings) with their additional values and rules inside the new separate file called "setup.php". To achieve that it needed (and has) a slighty different filename structure inside its cache folder.
+
+*Adaptive Images (über-extended)* (AIue) – this fork – now contains minor alterations, further improvements and bugfixes for this concept, the original authors didn’t manage to commit yet – and perchance may eventually become its own new creation by itself with even more added stuff and a lot of highly over-engineered cool features the world so eagerly waited for. ;) 
+
+
+
+h2. Benefits of Adaptive Images In General
+
+* It safes bandwidth: takes care that your webpage only delivering images at a resolution not higher than the vistor would need (except you want it otherwise).
+* It provides structure: You only need to manage one full res image.
+* It is device agnostic: it works by detecting the size of the visitors screen.
+* It is CMS agnostic: it manages its own image resizing and will work on any CMS or even on flat HTML pages.
+* It is highly configurable:
 ** Choose where you want the cached files to be stored
-** Configure directories to ignore (protect certain directories so AI is not applied to images within them)
+** Configure directories to ignore, whre you don’t want AI to apply
+
+h2. How It Works
+* One line of JavaScript (uuuh!) sets a small cookie (ooouu!) containing the screen resolution and the pixel density of the users device when the page is about to load.
+* When an image is requested, .htaccess intercepts this request and passes it to adaptive-images.php, perfomring the logic to serve the approriate image size.
+
+For further details on this concept, see Matt Wilcox’ original "Apaptive Images Homepage":http://adaptive-images.com/details.htm.
+And/or see * More Detailed Description* below for comparison between the forks.
 
 h2. Install
 
-Copy the adaptive-images folder at the root-folder.
-Make sure, the permission of the adaptive-images folder is 755.
-Copy the .htaccess at the root-folder or copy its code in an existing .htaccess file.
+1. Add *<script>document.cookie = 'resolution=' + Math.max( screen.width, screen.height ) + ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1" ) + '; path=/';</script>* to your web pages <head> at the most top position possible.
+2. Copy the adaptive-images folder into your web pages root directory.
+3. Make sure the permission of the adaptive-images directory and ai-cache subdirectory is (at least) *755*.
+4. Copy the .htaccess into your web pages root directory – or copy its code section in the existing .htaccess file.
+5. Set up path names in .htaccess with RewriteCond rules, to ignore images in ("blacklist") or simply make a "whitelist" of paths you wish AI to apply in.
+6. Just make sure *again* that the last RewriteRule contains the proper path leading to your adaptive-images.php. 
 
-h2. Description
+Alternatively put the .htaccess in your images directory for example, and/or the adaptive-images folder somewhere else on your server, but then *make sure that the RewriteRule points to the proper adaptive-images.php location* relative to your directory structure (step 6)! 
 
-h3. The easy original "Adaptive Images" behavior:
+h2. More Detailed Description
+
+h3. The Original "Adaptive Images" Behavior by Matt Wilcox
+
+We want that as a default, by setting *$config['enable_resolutions'] = TRUE* in setup.php.
 
 &#060;img src="image.jpg" /&#062;
 
-The original "Adaptive Images" by Matt Wilcox.
-This will resizes every image on the rewrite conditions (.htaccess). The size 
-of the image will be the one value of the $config['resolutions'] that is equal 
-or closest higher than the device maximum width. You can enable this behavior 
-by setting $config['enable_resolutions'] = TRUE. Then all images without a 
-size-parameter will be sized by the original behavior of "Adaptive Images".
+This will resizes every image matching the rewrite conditions in .htaccess file. The size of the image will be the one value of the $config['resolutions'] that is equal or closest higher than the users device maximum width.
 
-h3. The more spezific behavior:
+When disabled (*FALSE*), the requested images will be served in its original full size; as long as there’s no size-term attached via query string – see next paragraph. 
+
+
+h3. The More Spezific Behavior of "Adaptive Images (extended)" by Johann Heyne
 
 &#060;img src="image.jpg?size=term" /&#062;
 
 *Breakpoints and sizes*
-Now you can define, what size an image has to have on spezific configurable 
-breakpoints equal to your media-queries. Just start with an default 
-breakpoint  and size 0. If you do not setup another breakpoint higher than 0, 
-the image will be this size on every device-dimensions. You can set the 
-width in pixel or percentage. If you use for instance 100% in this case, 
-the image will be 100% the size of the resolution, that is equal or 
-closest higher than the device maximum width, but maximum width of the 
-larges configured resolution.
+Now you can define, what size an image has to have on specific configurable design breakpoints equal to your CSS media queries. Your can give them custom names (the "size term") and set the their widths in pixel or percentage. If you use for instance 100% as a default case, the image will be 100% of the size of the resolution, that is equal or closest higher than the present users device maximum width – but maximum width of the largest configured resolution breakpoint but also not larger than the original full-res image size.
 
 *Cropping (cutting to fit)*
-You can define an aspect ratio for a term. 
-All depending images will be cropped.
+You can define an aspect ratio for a term. All depending images will be cropped to that ratio after resizing is done.
 
 *Sharpen*
-You can define the amount of sharpness for a term. 0 is no sharpness, 
-up to 30 is pleasant, higher than 30 is really sharp (max 500).
+You can define if you want to sharpen the resized images and even the amount of sharpness applied. 0 is no sharpening at all, up to 30 is subtile, more than 30 is really impacting, max is 500 (imagine that!).
 
 *JPEG quality*
-You can define the JPEG quality for a term from 100, which is best, 
-down to 70, which is pleasant.
+You can define the JPEG quality for a size term when device pixel ratio is at 1. If above 1 ( = "retina"), you can set a different JPEG compression level – very useful for applying "Netvlies Retina Revolution Trick":http://blog.netvlies.nl/design-interactie/retina-revolution/ if you want to use it. JPEG quality 100: of course is best; down to 70: is pleasant; below 40: really compressed (and small in size).
 
 *Prevent cache*
-For developping, you might will see changes of the setup on every 
-page-reload. Then setup:
-$config['browser_cache'] = 0;
-$config['prevent_cache'] = TRUE;
+For developing, you might want to disable caching, to see changes of the setup and the images on every page reload. For this, in setup.php do:
+
+* $config['browser_cache'] = 0;
+* $config['prevent_cache'] = TRUE;
+
+But remember to turn caching on again, when the site is going live!
 
 *Debug mode*
-This inserts some informations into the image.
-* image dimensions
-* the aspect ratio
-* the device-width
-			
+This inserts some information into the generated images like: image dimensions, the aspect ratio, the device-width and pixel density.
+
+
+h3. The Even More Useful Additions of "Adaptive Images (über-extended)"
+
+// Later. Later? Later, alligator! 
+
+		
 h2. Legal
 
-Adaptive Images (is forked and adapted from original "Adaptive Images" by Matt Wilcox)
-Adaptive Images by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/
+"Adaptive Images (über-extended)" is forked and adapted from "Adaptive Images (extended)" by Johann Heyne, using the original "Adaptive Images" code and idea by Matt Wilcox.
+"Adaptive Images" by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/

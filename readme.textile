@@ -30,7 +30,7 @@ And/or see * More Detailed Description* below for comparison between the forks.
 
 h2. Install
 
-1. Add *<script>document.cookie = 'resolution=' + Math.max( screen.width, screen.height ) + ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1" ) + '; path=/';</script>* to your web pages <head> at the most top position possible.
+1. Add *<script>document.cookie = 'resolution=' + Math.max( screen.width, screen.height ) + ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1" ) + '; path=/';</script>* to your web pages <head> at the top most position possible. (See included adaptive-images-cookie-line.js.)
 2. Copy the adaptive-images folder into your web pages root directory.
 3. Make sure the permission of the adaptive-images directory and ai-cache subdirectory is (at least) *755*.
 4. Copy the .htaccess into your web pages root directory – or copy its code section in the existing .htaccess file.

@@ -1,24 +1,43 @@
+#     Adaptive-Images     ################################################################## #
+
 <IfModule mod_rewrite.c>
 	
+	# In some cases "Options +FollowSymlinks" causes a server error.
+	# Then just comment it out. Observed at the provider "Internet24".
 	Options +FollowSymlinks
 	RewriteEngine On
 
-	# Adaptive-Images -----------------------------------------------------------------------------------
 
-	# Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
-	# RewriteCond %{REQUEST_URI} !ignore-this-directory
-	# RewriteCond %{REQUEST_URI} !and-ignore-this-directory-too
+		# WHITELIST
+		# Specify directories you wish AI to apply in; for example:
+		# RewriteCond %{REQUEST_URI} look-inside-of-this-directory
+		# RewriteCond %{REQUEST_URI} and-look-inside-of-that-directory
+		
+		RewriteCond %{REQUEST_URI} images
 
-	RewriteCond %{REQUEST_URI} !assets
 
-	# don't apply the AI behaviour to images inside AI's cache folder:
-	RewriteCond %{REQUEST_URI} !ai-cache
- 
-	# Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
-	# to adaptive-images.php so we can select appropriately sized versions
+		# BLACKLIST
+		# Add any directories you wish to exclude from the AI process; for example:
+		# RewriteCond %{REQUEST_URI} !ignore-this-directory
+		# RewriteCond %{REQUEST_URI} !and-ignore-that-directory-too
 
-	RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images/adaptive-images.php
+		RewriteCond %{REQUEST_URI} !css
+		RewriteCond %{REQUEST_URI} !sprites
 
-	# END Adaptive-Images -------------------------------------------------------------------------------
+		# As a default, blacklist AI's cache directory in any case,
+		# and any directory names "cache" in general (to maybe not mess up other things on a site)
+				
+		RewriteCond %{REQUEST_URI} !ai-cache
+		RewriteCond %{REQUEST_URI} !cache
+		
+
+		# Here, any requested GIF, JPG, or PNG file, that is stored inside a whitelisted directory name
+		# and not stored inside a blacklisted directory name above,
+		# is sent to adaptive-images.php to select and/or generate appropriately sized versions.
+	
+		RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images/adaptive-images.php
+
 
 </IfModule>
+
+#     END OF     Adaptive-Images     ######################################################### #

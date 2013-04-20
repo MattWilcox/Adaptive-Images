@@ -1,3 +1,14 @@
+version 1.0.2 (2013-04-20 ------------------------------------------------------------
+
+	* Fixed fatal fallback problem: fallback now actually works
+	* Introduced fallback default resolutions for mobile and desktop
+	  Can be overridden by size terms if needed
+	* Better handling of crop ratios:
+	  Ratio gets normalized, this means fraction is reduced to something like x:1
+	  Maximum allowed digits of the resulting ratio is 1, means something like 1.6:1
+	  Resulting benefit: file structure is cleaner; ratios can be "used again"
+	  
+
 version 1.0.1 (2013-04-19) -----------------------------------------------------------
 
 	* Introduced ['scalings']: now the breakpoint sizes don’t dictate the resulting

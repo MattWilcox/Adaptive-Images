@@ -73,10 +73,10 @@
 	// other caching settings
 	$config['browser_cache']        = 60 * 60 * 24;	// period of time in seconds the images will stay in cache of browsers	
 	//$config['browser_cache']		= 0;			// enable this line line during developement!
-	$config['prevent_cache']        = FALSE; 		// true: images will resized on every image request; default: false
+	$config['prevent_cache']        = FALSE; 		// default: false; true: images will resized on every image request
 
 	// while developing: inserts information like image dimensions, ratio and the device-width into the image
-	$config['debug_mode']           = FALSE;			// default: false
+	$config['debug_mode']           = FALSE;		// default: false
 
 
 
@@ -87,7 +87,7 @@
 	// false: to only use the size terms in a query string and serve the original full res pic at a "native request"
 	$config['enable_resolutions']   = TRUE;  
 
-	// Here are our breakpoints for the default behavior; screen widths in pixels
+	// Here are our breakpoints for the default behavior; screen widths in pixels; ascending order
 	$config['resolutions']          = array(0, 320, 480, 640, 1080, 1440, 2048, 2880);
 
 	// Now new in AIue: kind of 'one size fits all' values, corresponding to the resolutions above
@@ -118,7 +118,11 @@
 	if ( count($config['breakpoints']) != count($config['scalings']) or (count($config['resolutions']) != count($config['scalings'])) ) { exit($error_str); }
 	
 	
-	
+	// Setting the two fallback widths for mobile and desktop
+	// can be overridden by size terms later
+	// MUST be pixel or unitless (meaning pixel)
+	$config['fallback']['mobile']  =  '480px';
+	$config['fallback']['desktop'] = '1440px';
 	
 							
 	// Some settings concerning the default behavior image quality
@@ -139,15 +143,18 @@
 	// Below this is just an example how to set it up
 	// You MUST use units like % or px! Otherwise it gets ignored and results in '100%'
 	// Usage afterwards: <img src="image.jpg?size=term" />
-	$setup['term']['breakpoints']['default'] = '50%';
-	$setup['term']['breakpoints']['normal'] = '6000px';
-	$setup['term']['ratio'] = '2:1';
+	$setup['term']['breakpoints']['default'] = '100%';
+	$setup['term']['breakpoints']['normal'] = '1024px';
+	$setup['term']['ratio'] = '1.6181:1';
 	$setup['term']['jpg_quality'] = 95;
 	$setup['term']['jpg_quality_retina'] = 40;
 	$setup['term']['sharpen']['amount'] = 40;
+	$setup['term']['fallback']['mobile'] = '320px';		// must be pixel
+	$setup['term']['fallback']['desktop'] = '1024px';	// must be pixel
 
-
-
+	// set up your own size terms here; use $config['breakpoints'] = array( '{strings}' ) as breakpoints
+	
+	
 
 
 	// UBER-EXTENDED BEHAVIOR

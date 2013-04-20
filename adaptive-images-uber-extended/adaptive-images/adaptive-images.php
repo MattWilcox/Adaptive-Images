@@ -16,7 +16,8 @@
  * 		GitHub:   	https://github.com/MattWilcox/Adaptive-Images
  * 		Homepage:		http://adaptive-images.com
  * 		Twitter:    	@responsiveimg
- * 		LEGAL:      	Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
+ * 		LEGAL:      	Adaptive Images by Matt Wilcox is licensed under a
+ * 						Creative Commons Attribution 3.0 Unported License.
  * 		
  * 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -36,7 +37,11 @@
     $browser_cache      = $config['browser_cache']; 		// How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
     $debug_mode         = $config['debug_mode']; 			// Write new Image dimentions into the stored imageif(!$_GET['w']) $_GET['w'] = 100;
     $prevent_cache      = $config['prevent_cache']; 		// always generate and deliver new images
-    $setup_ratio_arr    = FALSE;							// Initializing variable for use afterwards
+    $setup_ratio_arr    = FALSE;							// Initializing crop ratio array variable for use afterwards
+    $setup_ratio		= FALSE;							// // Initializing crop ratio variable for use afterwards
+    $fallback			= null;								// triggers when fallback eventually becomes active
+    $fallback_mobile	= $config['fallback']['mobile'];	// the default fallback resolution for mobile devices
+    $fallback_desktop   = $config['fallback']['desktop'];	// the default fallback resolution for large/desktop displays	
     
 	
 	
@@ -45,19 +50,34 @@
 	
     if ( isset($_GET['size']) ) {
         
-        if(isset($setup[$_GET['size']]['ratio'])) $setup_ratio_arr  = explode(':', $setup[$_GET['size']]['ratio']);
-    
-        if( isset($setup[$_GET['size']]['sharpen']['amount']) ) $config['sharpen']['amount'] = $setup[$_GET['size']]['sharpen']['amount'];
-        if( isset($setup[$_GET['size']]['jpg_quality']) ) $jpg_quality = $setup[$_GET['size']]['jpg_quality'];
-        if( isset($setup[$_GET['size']]['jpg_quality_retina']) ) $jpg_quality_retina = $setup[$_GET['size']]['jpg_quality_retina'];
+		// when a size term is provided, use specific settings instead of default
+        if ( isset($setup[$_GET['size']]['ratio'])) 				$setup_ratio_arr  = explode(':', $setup[$_GET['size']]['ratio']);
+        if ( isset($setup[$_GET['size']]['sharpen']['amount']) ) 	$sharpen_amount = $setup[$_GET['size']]['sharpen']['amount'];
+        if ( isset($setup[$_GET['size']]['jpg_quality']) ) 			$jpg_quality = $setup[$_GET['size']]['jpg_quality'];
+        if ( isset($setup[$_GET['size']]['jpg_quality_retina']) ) 	$jpg_quality_retina = $setup[$_GET['size']]['jpg_quality_retina'];
+		if ( isset($setup[$_GET['size']]['fallback']['mobile']) )  	$fallback_mobile = $setup[$_GET['size']]['fallback']['mobile'];
+		if ( isset($setup[$_GET['size']]['fallback']['desktop']) ) 	$fallback_desktop = $setup[$_GET['size']]['fallback']['desktop']; 
     
     
         /* get the image size and build the breakpoint-string */
         foreach($setup[$_GET['size']]['breakpoints'] as $key => $value) {
             $param_array[] = $key . '-' . $value;
-        }
+        	}
         $param = implode( '_', $param_array );
         $_GET['bp'] = $param;
+		
+		
+		
+		// Sanitize the ratio values, normalize, and reduce fraction to 1 digit maximum
+		$setup_ratio_arr[0] = (float) str_replace( ',', '.', $setup_ratio_arr[0]);
+		$setup_ratio_arr[1] = (float) str_replace( ',', '.', $setup_ratio_arr[1]);
+		
+		$setup_ratio_arr[0] = round( ($setup_ratio_arr[0] / $setup_ratio_arr[1]), 1, PHP_ROUND_HALF_UP);
+		$setup_ratio_arr[1] = 1;
+		
+		$setup_ratio = $setup_ratio_arr[0];		// we only need to use this one now
+		
+		
 	 
 	 
 	 
@@ -86,6 +106,11 @@
 		$original_requested = true;		
 	}
     
+	
+	
+	
+	
+	
     /* get the image parameter-string and convert it into an array */
     if( isset($_GET['bp']) ) {
     
@@ -242,7 +267,7 @@
     /* generates the given cache file for the given source file with the given resolution */
     function generateImage($source_file, $cache_file, $resolution) {
     
-        global $sharpen, $jpg_quality, $jpg_quality_retina, $setup_ratio_arr;
+        global $sharpen, $sharpen_amount, $jpg_quality, $jpg_quality_retina, $setup_ratio;
 
         $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -250,6 +275,7 @@
         $dimensions   = GetImageSize($source_file);
         $width        = $dimensions[0];
         $height       = $dimensions[1];
+		
 
         /* Do we need to downscale the image? */
         /* because of cropping, we need to prozess the image
@@ -275,11 +301,11 @@
         $start_x = 0;
         $start_y = 0;
         
-        if ( $setup_ratio_arr ) {
+        if ( $setup_ratio ) {
         
             /* set height for new image */ 
             $orig_ratio = $new_width / $new_height;
-            $crop_ratio = $setup_ratio_arr[0] / $setup_ratio_arr[1];
+            $crop_ratio = $setup_ratio;
             $ratio_diff = $orig_ratio / $crop_ratio;
             $ini_new_height = ceil($new_height * $ratio_diff);
         
@@ -329,24 +355,30 @@
         /* debug mode */
         global $debug_mode;
         if($debug_mode) {
-            /* write a textstring with the dimensions */
-            $color = imagecolorallocate($dst, 255, 0, 255); // Use fresh magenta 
+        	
+			$color = imagecolorallocate($dst, 255, 0, 255); // Use fresh magenta
+			
+            // first debug line: write a textstring with dimensions etc.
             $cookie_data = explode(',', $_COOKIE['resolution']);
             $debug_ratio = false;
-	     if( $setup_ratio_arr ) $debug_ratio = $setup_ratio_arr[0] . ':' . $setup_ratio_arr[1];
+	     	if( $setup_ratio ) $debug_ratio = $setup_ratio . ':1';
             imagestring( $dst, 5, 10, 5, $debug_width." x ".$debug_height . ' ' . $debug_ratio . ' device:' . $cookie_data[0] . '*' . $cookie_data[1] . '=' . ceil($cookie_data[0] * $cookie_data[1]) . $addonstring, $color);
-	     // Additional debug line
-	     $addonstring = $_GET['size'];
-	     imagestring( $dst, 5, 10, 20, $addonstring, $color);
-			     
+	     
+	     	// second debug line: show size term if provided
+	     	$secondline = $_GET['size'];
+	     	imagestring( $dst, 5, 10, 20, $secondline, $color);
+		 
+		 	// third debug line: is fallback active?
+		 	global $fallback;
+		 	if ( $fallback ) $thirdline = "Fallback active!";
+		 	imagestring( $dst, 5, 10, 35, $thirdline, $color);
         }
 
         ImageDestroy($src);
 
         /* sharpen the image */
         if($sharpen == TRUE) {
-            global $config;
-            $amount = $config['sharpen']['amount']; /* max 500 */
+            $amount = $sharpen_amount; /* max 500 */
             $radius = '1'; /* 50 */
             $threshold = '0'; /* max 255 */
             
@@ -392,7 +424,12 @@
         }
 
         return $cache_file;
-    }
+		
+    }  /* end of generateImage()
+
+
+
+
 
     /* check if the file exists at all */
     if (!file_exists($source_file)) {
@@ -465,13 +502,13 @@
             }
             else { /* pixel density is 1, just fit it into one of the breakpoints */
                 foreach ($resolutions as $break_point) { /* filter down */
-                    if ($total_width <= $break_point) {
+                     if ($total_width <= $break_point) {
                     		// Yep: ['scalings']
                         	$key = array_search($break_point, $resolutions);
                             $resolution = $scalings[$key];                    	
                         	/* $resolution = $break_point; */
-                    }
-                }
+                   	 }
+		        }
             }
 
             /* recalculate the resolution depending on the image parameters */
@@ -484,19 +521,24 @@
                 }
                 if(isset($resolution_new)) $resolution = $resolution_new;
                 $resolution = ceil($resolution);
-            }
-        }
-    }
+				}
+				
+		} /* end of valid cookie stuff */
+    } /* end of cookie detection */
 
-    /* FALLBACK when no resolution was found (no cookie or invalid cookie) */
+
+    // FALLBACK
+	// When no resolution was found due to no cookie or invalid cookie
     if (!$resolution) {
-        // We send the lowest resolution for mobile-first approach, and highest otherwise
-        // $resolution = $is_mobile ? min($resolutions) : max($resolutions);
-    
-        foreach($setup[$_GET['size']]['breakpoints'] as $key => $value) {
-            $array[] = strtr($value, array ('px'=>'','%'=>''));
-        }
-        $resolution = $is_mobile ? min($array) : max($array);
+        global $fallback, $fallback_mobile, $fallback_desktop;		
+
+		// Use specific fallback resolutions from setup.php
+		$fallback_mobile = (int) strtr($fallback_mobile, array ('px'=>'','%'=>''));
+		$fallback_desktop = (int) strtr($fallback_desktop, array ('px'=>'','%'=>''));
+		if ( $fallback_desktop <= $fallback_mobile ) $fallback_desktop = $fallback_mobile * 3;
+        
+        $resolution = $is_mobile ? $fallback_mobile : $fallback_desktop;
+		$fallback = true;
     }
     
     /* if the requested URL starts with a slash, remove the slash */
@@ -504,15 +546,14 @@
         $requested_uri = substr($requested_uri, 1);
     }
 
-    /* whew might the cache file be? */
+    // Whew might the cache file be?
+    // Ratio slug now only one value; second is obsolete since normalizing!
     $ratio_slug = '';
-    if( $setup_ratio_arr ) {
-        $ratio_slug = '-' . $setup_ratio_arr[0] . '-' . $setup_ratio_arr[1];
-    }
-    
-    $pixel_density_slug = '-' . $pixel_density;
+	if ( $setup_ratio ) $ratio_slug = '-' . $setup_ratio;
+	
+	if ( $fallback ) $pixel_density = 1;
+	$pixel_density_slug = '-' . $pixel_density;
      
-    // Alternative concatenation; some wierd-looking directories are created sometimes, maybe this helps fixing this
     $cache_file = $document_root . "/" . $cache_path . "/" . $resolution . $pixel_density_slug . $ratio_slug . "/" . $requested_uri;
     
     

@@ -46,8 +46,9 @@
 	
 	
 	
-	// Adaptive Images starts here
+	// ###  Adaptive Images starts here  ###
 	
+	// Assess query string
     if ( isset($_GET['size']) ) {
         
 		// when a size term is provided, use specific settings instead of default
@@ -73,7 +74,7 @@
 		$setup_ratio_arr[1] = (float) str_replace( ',', '.', $setup_ratio_arr[1]);
 		
 		$setup_ratio_arr[0] = round( ($setup_ratio_arr[0] / $setup_ratio_arr[1]), 1, PHP_ROUND_HALF_UP);
-		$setup_ratio_arr[1] = 1;
+		$setup_ratio_arr[1] = 1;	// practically useless; just for completeness
 		
 		$setup_ratio = $setup_ratio_arr[0];		// we only need to use this one now
 		
@@ -88,11 +89,15 @@
 	   or ($_GET['size'] == 'fullsize') 
 	   or ($_GET['size'] == 'source')
 	   or ($_GET['size'] == 'src')
-	   or ($_GET['size'] == '100%') ) { 
-	 	$original_requested = true;
+	   or ($_GET['size'] == '100%') ) {
+	   	$original_requested = true;
 	 }
 
-    }
+    }  /* End of query string assessment */
+
+
+
+
 
 	// The 'shortcut'
 	// When just the param is used, without any value, to request the original picture 
@@ -104,7 +109,7 @@
 	  or isset($_GET['src'])
 	  or isset($_GET['100%']) ) {
 		$original_requested = true;		
-	}
+		}
     
 	
 	
@@ -138,7 +143,8 @@
     $requested_file = basename($requested_uri);
     $source_file    = $document_root.$requested_uri;
     $resolution     = FALSE;
-    
+
+	// Serve the source file, in case there are no plausible breakpoints are set    
     if( !$enable_resolutions ) {
         if( !isset($images_param) || count($images_param) === 0 ) {
             sendImage($source_file, $browser_cache);
@@ -147,11 +153,10 @@
     }
 
 	
-	// Is the original full size image requested?
+	// Is the original full size image explicitely requested?
 	if ( $original_requested ) {
 	     sendImage($source_file, $browser_cache);
             die();
-		
 	}
 
 
@@ -162,13 +167,9 @@
         return strpos($userAgent, 'mobile');
     }
 
-    /* Does the UA string indicate this is a mobile? */
-    if(!is_mobile()){
-        $is_mobile = FALSE;
-    }
-    else {
-        $is_mobile = TRUE;
-    }
+    // Does the UA string indicate this is a mobile?
+	// Shortcurt to achieve that; idea: commit b883be0 by nikcorg
+	$is_mobile = is_mobile();
 
     /* does the $cache_path directory exist already? */
     if (!is_dir("$document_root/$cache_path")) { 					/* no */
@@ -264,11 +265,34 @@
         return generateImage($source_file, $cache_file, $resolution);
     }
 
-    /* generates the given cache file for the given source file with the given resolution */
+    
+		 
+	 
+	 
+	 
+	// Generates the given cache file for the given source file with the given resolution
     function generateImage($source_file, $cache_file, $resolution) {
     
         global $sharpen, $sharpen_amount, $jpg_quality, $jpg_quality_retina, $setup_ratio;
 
+		// Double-check earlier, if path exists and is writable
+        $cache_dir = dirname($cache_file);
+
+        /* does the directory exist already? */
+        if (!is_dir($cache_dir)) { 
+            if (!mkdir($cache_dir, 0755, true)) {
+                /* check again if it really doesn't exist to protect against race conditions */
+                if (!is_dir($cache_dir)) {
+                    sendErrorImage("Failed to create cache directory: $cache_dir");
+                }
+            }
+        }
+
+        if (!is_writable($cache_dir)) {
+            sendErrorImage("The cache directory is not writable: $cache_dir");
+        }
+		
+		
         $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
         /* Check the image dimensions */
@@ -374,7 +398,10 @@
 		 	imagestring( $dst, 5, 10, 35, $thirdline, $color);
         }
 
+        
         ImageDestroy($src);
+
+
 
         /* sharpen the image */
         if($sharpen == TRUE) {
@@ -387,23 +414,7 @@
             }
         }
 
-        $cache_dir = dirname($cache_file);
 
-        /* does the directory exist already? */
-        if (!is_dir($cache_dir)) { 
-            if (!mkdir($cache_dir, 0755, true)) {
-                /* check again if it really doesn't exist to protect against race conditions */
-                if (!is_dir($cache_dir)) {
-                    /* uh-oh, failed to make that directory */
-                    ImageDestroy($dst);
-                    sendErrorImage("Failed to create cache directory: $cache_dir");
-                }
-            }
-        }
-
-        if (!is_writable($cache_dir)) {
-            sendErrorImage("The cache directory is not writable: $cache_dir");
-        }
 
         /* save the new file in the appropriate path, and send a version to the browser */
         switch ($extension) {
@@ -542,9 +553,13 @@
     }
     
     /* if the requested URL starts with a slash, remove the slash */
-    if(substr($requested_uri, 0,1) == "/") {
+    /*if(substr($requested_uri, 0,1) == "/") {
         $requested_uri = substr($requested_uri, 1);
-    }
+    }*/
+    
+    // Trim any potential leading slashes; idea from commit a9c32c4 by nikcorg
+	$requested_uri = ltrim($requested_uri, "/"); 
+    
 
     // Whew might the cache file be?
     // Ratio slug now only one value; second is obsolete since normalizing!

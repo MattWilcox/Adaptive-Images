@@ -16,7 +16,7 @@ version 1.0.1 (2013-04-19) -----------------------------------------------------
 	  containing the desired image widths.
 	* Introducing "fullsize request" via query string.
 	  Reserved query params for this are: 'original', 'full', 'fullsize', 'source' and 'src'.
-	  Don’t use them as size terms, they are hardcoded and overriding it anyway. 
+	  Don’t use them as size terms, they are hardcoded and overridden it anyway. 
 	  Example usage: image.jpg?original or image.jpg?size=original etc.
 	* Added "Fancy Wish To Do List".
 	

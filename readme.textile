@@ -1,94 +1,95 @@
-This is a fork of Johann Heynes (johannheyne) "Adaptive Images (extendend)", based on Matthew Wilcox (mattwilcox) original code and idea of "Adaptive Images". Thank you both!
+h1. JavaScript Snippet for Detecting Screen Width (über-extended)
+
+**Meant to be used with Adaptive Images and its forks, but can of course be altered to meet other needs as well.**
+
+Since I "found out":http://www.quirksmode.org/mobile/tableViewport.html that the use of screen.width doesn’t always leave you with reliable results in conjunction with devicepixelratio, I looked for another solution to do it. And here is how.
+
+**If you like serving for high-ppi ("retina") devices right: this is for you!**
 
 
-h1. Adaptive Images (über-extended)
+h2. The Problem
 
-*Adaptive Images* (AI) automatically creates, caches, and delivers device-appropriate versions of a website's content images. "Device-appropriate" in respect to device width and device pixel ratio. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Images":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
+When using AI, we rely on **screen.width** and **devicepixelratio** to detect the resolution (screen width and pixel ratio) to save it in the cookie. If we use the “long” version of the JS line to detect if a high-ppi (“retina”) device is present, we afterwards multiply the found screen width with the pixel ratio – doubling the image size to be served. This will work fine in browsers which actually return “wrong” values for screen.width: they report the theoretical screen resolution = CSS pixels = device independent pixels = dips. So what we’re basically doing is: relying on “bad behavior”; relying on a buggy and wrong implementation.
 
-*Adaptive Images (extended)* (AIe) then added (complicated sounding) functionality to control generated image size (and quality and many other details) in respect to given design breakpoints – corresponding to the users device width – via a url query string when the image actually is going to be requested. To set this up, one needed to define the ['terms'] ( = size terms = future query strings) with their additional values and rules inside the new separate file called "setup.php". To achieve that it needed (and has) a slighty different filename structure inside its cache folder.
+Why? Because "according to quirksmode":http://www.quirksmode.org/mobile/tableViewport.html, screen.width is actually meant to return the **real physical size** of the screen – _not the dips!_
 
-*Adaptive Images (über-extended)* (AIue) – this fork – now contains minor alterations, further improvements and bugfixes for this concept, the original authors didn’t manage to commit yet – and perchance may eventually become its own new creation by itself with even more added stuff and a lot of highly over-engineered cool features the world so eagerly waited for. ;) 
-
-
-
-h2. Benefits of Adaptive Images In General
-
-* It safes bandwidth: takes care that your webpage only delivering images at a resolution not higher than the vistor would need (except you want it otherwise).
-* It provides structure: You only need to manage one full res image.
-* It is device agnostic: it works by detecting the size of the visitors screen.
-* It is CMS agnostic: it manages its own image resizing and will work on any CMS or even on flat HTML pages.
-* It is highly configurable:
-** Choose where you want the cached files to be stored
-** Configure directories to ignore, whre you don’t want AI to apply
-
-h2. How It Works
-* One line of JavaScript (uuuh!) sets a small cookie (ooouu!) containing the screen resolution and the pixel density of the users device when the page is about to load.
-* When an image is requested, .htaccess intercepts this request and passes it to adaptive-images.php, performing the logic to serve the appropriate image size.
-
-For further details on this concept, see Matt Wilcox’ original "Apaptive Images Homepage":http://adaptive-images.com/details.htm.
-And/or see *More Detailed Description* below for comparison between the forks.
-
-h2. Install
-
-* Add the line of JavaScript you find in *adaptive-images-cookie-line.js* to your web pages head at the top most position possible.
-* Copy the adaptive-images folder into your web pages root directory.
-* Make sure the permission of the adaptive-images directory and ai-cache subdirectory is (at least) *755*.
-* Copy the .htaccess into your web pages root directory – or copy its code section in the existing .htaccess file.
-* Set up path names in .htaccess with RewriteCond rules, to ignore images in ("blacklist") or simply make a "whitelist" of paths you wish AI to apply in.
-* Just make sure *again* that the last RewriteRule contains the proper path leading to your adaptive-images.php. 
-* Make use of setup.php.
-
-Alternatively put the .htaccess in your images directory for example, and/or the adaptive-images folder somewhere else on your server, but then *make sure that the RewriteRule points to the proper adaptive-images.php location* relative to your directory structure! 
-
-h2. More Detailed Description
-
-h3. The Original "Adaptive Images" Behavior by Matt Wilcox
-
-We want that as a default, by setting *$config['enable_resolutions'] = TRUE* in setup.php.
-
-&#060;img src="image.jpg" /&#062;
-
-This will resizes every image matching the rewrite conditions in .htaccess file. The size of the image will be the one value of the $config['resolutions'] that is equal or closest higher than the users device maximum width.
-
-When disabled (*FALSE*), the requested images will be served in its original full size; as long as there’s no size-term attached via query string – see next paragraph. 
+So: if you “accidentially” serve to a browser that does it _right_, you end up doubling the already doubled screen size – ergo image size.
+And if you’re like me, taking into account even device pixel ratios >2 (possible with "the fork I’m using":https://github.com/Darkwing371/Adaptive-Images-Uber-Extended), it could happen that you serve a 5760px image to a screen that has only 640px of theoretical width (worst case).
 
 
-h3. The More Specific Behavior of "Adaptive Images (extended)" by Johann Heyne
+h2. The Reality Check
 
-&#060;img src="image.jpg?size=term" /&#062;
+So is this a real world problem? Decide for yourself.
 
-*Breakpoints and sizes*
-Now you can define, what size an image has to have on specific configurable design breakpoints equal to your CSS media queries. Your can give them custom names (the "size term") and set the their widths in pixel or percentage. If you use for instance 100% as a default case, the image will be 100% of the size of the resolution, that is equal or closest higher than the present users device maximum width – but maximum width of the largest configured resolution breakpoint but also not larger than the original full-res image size.
+"Quirksmode":http://www.quirksmode.org/mobile/tableViewport.html reports, that on new Android phones, Blackberries, newer Nokias and on mobile Firefoxes, the screen size which screen.width would report, is based on the actual device pixels. Thus being right, it would actually cause us problems.
 
-*Cropping (cutting to fit)*
-You can define an aspect ratio for a term. All depending images will be cropped to that ratio after resizing is done.
+So with ppks compatiblity table in mind, I went downtown to do a real life countercheck. Here are my findings:
 
-*Sharpen*
-You can define if you want to sharpen the resized images and even the amount of sharpness applied. 0 is no sharpening at all, up to 30 is subtile, more than 30 is really impacting, max is 500 (imagine that!).
+<table>
+<caption>**Results of two approaches of screen width detection**</caption>
+<thead>
+<tr><th>Device</th><th>screen.width</th><th>mediaMatch</th></tr>
+</thead>
+<tbody>
+<tr><td>iPad</td><td>1024,2</td><td>1024,2</td></tr>
+<tr><td>iPhone 4</td><td>480,2</td><td>480,2</td></tr>
+<tr><td>iPhone 5</td><td>568,2</td><td>568,2</td></tr>
+<tr><td>MacBook Pro 13"</td><td>1280,2</td><td>1280,2</td></tr>
+<tr><td>MackBook Pro 15"</td><td>1440,1</td><td>1440,1</td></tr>
+<tr><td>MackBook Air 11"</td><td><span>*1366,1*</span></td><td><span>*1368,1*</span></td></tr>
+<tr><td>MacBook Air 13"</td><td>1440,1</td><td>1440,1</td></tr>
+<tr><td>Sony Xperia (Chrome)</td><td><span>*1794,3*</span></td><td>*600,3*</td></tr>
+<tr><td>HTC One (Chrome)</td><td><span>*1920,3*</span></td><td>*640,3*</td></tr>
+<tr><td>HTC One  X (Chrome)</td><td>1280,2</td><td>1280,2</td></tr>
+<tr><td>Samsung Galaxa S III</td><td>1280,2</td><td>1280,2</td></tr>
+<tr><td>Samsung Galaxy Note II</td><td>1280,2</td><td>1280,2</td></tr>
+<tr><td>Samsung Galaxy Tab 2</td><td>1280,1</td><td>1280,1</td></tr>
+<tr><td>Huawei Ascend</td><td>800,1.5</td><td>800,1.5</td></tr>
+<tr><td>Nokia Lumia</td><td>800,1</td><td>800,1</td></tr>
+</tboby>
+</table>
 
-*JPEG quality*
-You can define the JPEG quality for a size term when device pixel ratio is at 1. If above 1 ( = "retina"), you can set a different JPEG compression level – very useful for applying "Netvlies Retina Revolution Trick":http://blog.netvlies.nl/design-interactie/retina-revolution/ if you want to use it. JPEG quality 100: of course is best; down to 70: is pleasant; below 40: really compressed (and small in size).
-
-*Prevent cache*
-For developing, you might want to disable caching, to see changes of the setup and the images on every page reload. For this, in setup.php do:
-
-* $config['browser_cache'] = 0;
-* $config['prevent_cache'] = TRUE;
-
-But remember to turn caching on again, when the site is going live!
-
-*Debug mode*
-This inserts some information into the generated images like: image dimensions, the aspect ratio, the device-width and pixel density.
+We see it’s true: even in this quick test there are some cases **right now**, where we would actually be in trouble, when we’d try to care for high-ppi devices in the “old-fashioned way”. I’d say that on about 80% of the actual devices out there, there will be no big problems. But this might change with new devices and new browsers on new devices – and since we care for achieving excellence in being future friendly, let’s make it a 100% of compatiblity today. ;) 
 
 
-h3. The Even More Useful Additions of "Adaptive Images (über-extended)"
 
-* Percentage breakpoints are generated by default; with smart sharpening, according to the amount of resizing done.
-* Makes us of "scalings": breakpoint sizes don’t dictate the size of the generated image width any more – if you want to.
-* Request and serve the original image by using special query strings like "?original" or "?size=fullsize".
-* Have a working fallback in case of cookie troubles: set desired fallback widths manually.
-		
-h2. Legal
+h2. The Solution
 
-"Adaptive Images (über-extended)" is forked and adapted from "Adaptive Images (extended)" by Johann Heyne, using the original "Adaptive Images" code and idea by Matt Wilcox.
-"Adaptive Images" by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/
+I once came across "this thread on stackoverflow":http://stackoverflow.com/questions/6850164/get-the-device-width-in-javascript and became aware of the possibility using media queries via **matchMedia** in JS. I used this principle to detect the devices screen size in a small for-loop using the media queries. (Have a look at the code for details; it’s heavily commented.)
+
+h4. Why should this be favored?
+
+*Because it _uses_ CSS-pixels by design, because of the media queries – so it does of course return our desired dips.*
+
+* If media queries themselfes aren’t implemented (or buggy) in a browser/device, our responsive site is in trouble anyway.
+* And it can mean, that the device is _so_ old, that there is no way having a high-ppi display present.
+* Or maybe it means, that there is IE < 9 running. (See first point.)
+
+So let’s just count on having media queries available. I dare to raise the assumption, that media queries’ max-device-width is "completly implemented":http://www.browsersupport.net/CSS/%40media_%28max-device-width%29 in every browser on a new high-ppi device out there – and will be implemented "in future browsers":http://caniuse.com/#feat=matchmedia on new devices.
+
+I’d say, that sounds pretty reliable.
+
+And in case something should fail, we have our original one-liner to fall back to and simply abstain from serving high-ppi images. So nothing to lose here actually, **it’s progressive enhancement.**
+
+Remember:
+If this whole JavaScript thing should fail _at all_, we’ll always have a fallback in php to serve at least some appropriate image sizes.
+
+
+h2. Dude, this is huge – compared to the original one-liner!
+
+I know. This script seems totally overkill at first glance, when you got used to Matts original one line of code (that’s why my work is going by the name of **“über-extended”**). And well, I could have had this written in one line too (a long line), but I decided to comment all of my work – to make it easier to read, for understanding what and why it does things, and for others to maybe even add further improvements. 
+
+At first I was concerned about speed of execution too, but I tested it on several occasions: it did no harm and worked reliable. A browser that would set our cookie “too late” for whatever reason, doesn’t set it too late because of JS execution time. There are other things to be held responsible for, when something like this happens. JavaScript is actually executed quicker than I thought, even on small and old mobile devices.
+
+Nonetheless try putting the snippet on topmost location of your sites head! (And I’m pretty sure you know how to "minify":http://www.minifyjavascript.com/ it, if you want that.)
+
+
+
+h2. So what’s the bottom line a.k.a. tl;dr?
+
+* Don’t let our nice Adaptive Images solution rely on wrong and buggy browser implementations any more.
+* Be more future friendly, especially to devices that will actually do things _right_.
+* Have a more reliable and robust foundation for the math.
+* Peace of mind while always having the “oldschool version” as a fallback built-in.
+
+**Use the new JS snippet now!** … and have a gaze at the code! :)

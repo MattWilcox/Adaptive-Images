@@ -25,6 +25,7 @@ if (!cookie) {
 document.cookie = 'resolution='
 			 	+ Math.max( screen.width, screen.height )
 //				+ ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1")    // Better to leave out device pixel ratio in the fallback
+				+ ",1"
 				+ '; path=/';
 	
 
@@ -77,6 +78,7 @@ if (window.matchMedia) {
     document.cookie = 'resolution='
     			 	+ Math.max( screen.width, screen.height )
 //					+ ( "devicePixelRatio" in window ? "," + devicePixelRatio : ",1")    // Let’s leave out device pixel ratio in the fallback
+    				+ ",1"
     				+ '; path=/';
     
     }

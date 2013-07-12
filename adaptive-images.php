@@ -29,7 +29,7 @@ $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
-$transmitOriginalImage = ((isset($_GET['skipAdaptive']) && $_GET['skipAdaptive']=1) ? true : false);
+$transmitOriginalImage = ((isset($_GET['skipAdaptive']) && $_GET['skipAdaptive']==1) ? true : false);
 
 if($transmitOriginalImage) {
    sendImage($source_file, $browser_cache); // Exit implicitly

@@ -30,6 +30,29 @@ $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
 
+/* get cookie 
+ * - use 'resolution' cookie if available
+ * - otherwise, use HTTP Client Hints if available (https://github.com/jonathantneal/http-client-hints) 
+ * - otherwise, do nothing
+ */
+if (isset($_COOKIE['resolution'])) {
+  if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", $_COOKIE['resolution'])) { // no it doesn't look valid
+    setcookie("resolution", $_COOKIE['resolution'], time()-100); // delete the mangled cookie
+  } else {
+    $cookie_value = $_COOKIE['resolution'];
+  }
+} else {
+  if (isset($_COOKIE['CH'])) {
+      $ch = $_COOKIE['CH'];
+  } elseif(isset($_SERVER['HTTP_CH'])) {
+      $ch = $_SERVER['HTTP_CH'];
+  }
+  if (isset($ch)) {
+      parse_str(str_replace(',', '&', 'do=0&dpr=1&dw=1024&dh=768&'.$ch), $ch);
+      $cookie_value = max(array($ch['dw'],$ch['dh'])).','.$ch['dpr'];
+  }
+}
+
 /* Mobile detection 
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
@@ -241,54 +264,47 @@ if (!extension_loaded('gd')) { // it's not loaded
 }
 
 /* Check to see if a valid cookie exists */
-if (isset($_COOKIE['resolution'])) {
-  $cookie_value = $_COOKIE['resolution'];
+if (isset($cookie_value)) {
 
-  // does the cookie look valid? [whole number, comma, potential floating number]
-  if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
-    setcookie("resolution", "$cookie_value", time()-100); // delete the mangled cookie
+  $cookie_data   = explode(",", $cookie_value);
+  $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
+  $total_width   = $client_width;
+  $pixel_density = 1; // set a default, used for non-retina style JS snippet
+  if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
+    $pixel_density = $cookie_data[1];
   }
-  else { // the cookie is valid, do stuff with it
-    $cookie_data   = explode(",", $_COOKIE['resolution']);
-    $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
-    $total_width   = $client_width;
-    $pixel_density = 1; // set a default, used for non-retina style JS snippet
-    if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
-      $pixel_density = $cookie_data[1];
-    }
 
-    rsort($resolutions); // make sure the supplied break-points are in reverse size order
-    $resolution = $resolutions[0]; // by default use the largest supported break-point
+  rsort($resolutions); // make sure the supplied break-points are in reverse size order
+  $resolution = $resolutions[0]; // by default use the largest supported break-point
 
-    // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
-    if($pixel_density != 1) {
-      $total_width = $client_width * $pixel_density; // required physical pixel width of the image
+  // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
+  if($pixel_density != 1) {
+    $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
-      // the required image width is bigger than any existing value in $resolutions
-      if($total_width > $resolutions[0]){
-        // firstly, fit the CSS size into a break point ignoring the multiplier
-        foreach ($resolutions as $break_point) { // filter down
-          if ($total_width <= $break_point) {
-            $resolution = $break_point;
-          }
-        }
-        // now apply the multiplier
-        $resolution = $resolution * $pixel_density;
-      }
-      // the required image fits into the existing breakpoints in $resolutions
-      else {
-        foreach ($resolutions as $break_point) { // filter down
-          if ($total_width <= $break_point) {
-            $resolution = $break_point;
-          }
-        }
-      }
-    }
-    else { // pixel density is 1, just fit it into one of the breakpoints
+    // the required image width is bigger than any existing value in $resolutions
+    if($total_width > $resolutions[0]){
+      // firstly, fit the CSS size into a break point ignoring the multiplier
       foreach ($resolutions as $break_point) { // filter down
         if ($total_width <= $break_point) {
           $resolution = $break_point;
         }
+      }
+      // now apply the multiplier
+      $resolution = $resolution * $pixel_density;
+    }
+    // the required image fits into the existing breakpoints in $resolutions
+    else {
+      foreach ($resolutions as $break_point) { // filter down
+        if ($total_width <= $break_point) {
+          $resolution = $break_point;
+        }
+      }
+    }
+  }
+  else { // pixel density is 1, just fit it into one of the breakpoints
+    foreach ($resolutions as $break_point) { // filter down
+      if ($total_width <= $break_point) {
+        $resolution = $break_point;
       }
     }
   }

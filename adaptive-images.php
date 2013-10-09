@@ -42,10 +42,10 @@ if (isset($_COOKIE['resolution'])) {
     $cookie_value = $_COOKIE['resolution'];
   }
 } else {
-  if (isset($_COOKIE['CH'])) {
-      $ch = $_COOKIE['CH'];
-  } elseif(isset($_SERVER['HTTP_CH'])) {
+  if(isset($_SERVER['HTTP_CH'])) {
       $ch = $_SERVER['HTTP_CH'];
+  } elseif (isset($_COOKIE['CH'])) {
+      $ch = $_COOKIE['CH'];
   }
   if (isset($ch)) {
       parse_str(str_replace(',', '&', 'do=0&dpr=1&dw=1024&dh=768&'.$ch), $ch);

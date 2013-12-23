@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    
+    <style>
+      body {
+        width : 90%; margin : 1em auto;
+        background : #333; color : #aaa; font : 100%/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+      h1, h2, h3, h4, h5, h6 {
+        color : #fff; }
+      p code { color : #99e; }
+      pre > code { display : block; padding : 1em; border : 1px solid #999; }
+      :target { background-color : #000;}
+      
+      a,a:visited{ color : #99f; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Adaptive-Images Kullanım Kılavuzu</h1>
+    <h2>Temel yönergeler</h2>
+    <p><code>adaptive-images.php</code> ve <code>.htaccess</code> dosyalarını sitenizin ana dizinine yerleştirin. Eğer halihazırda bir htaccess dosyanız varsa onu SİLMEYİN, ileri düzey yönergeleri okuyun.</p>
+    <p>Aşağıdaki Javascript kodunu sitenize yerleştirin. Bu kod, head taginin içinde ve diğer tüm javascript kodlarından önce yerleştirilmek ZORUNDA. Çünü her türlü gecikmenin sonuçları olabilir ve düzgün çalışabilmesi için olabildiğince erken yüklenmesi gerekiyor.</p>
+<pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+'; path=/';&lt;/script&gt;</code></pre>
+    <p>Hepsi bu kadar. Yine de <a href="#config">bazı ayarları yapmanız</a> gerekecektir.</p>
+    <p>NOT 1: Eğer iPhone4 veya iPad3 Retina gibi cihazların yüksek çözünürlüğünden faydalanmak isterseniz aşağıdaki Javascript'i kullanın.
+        Bu sayede bu tarz cihazlara yüksek çözünürlüklü resimler göndereceksiniz, ama bu da download süresini yavaşlatacaktır tabii ki.</p>
+    <pre><code>&lt;script&gt;document.cookie='resolution='+Math.max(screen.width,screen.height)+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';&lt;/script&gt;</code></pre>
+    <p>NOT 2: Eğer ekran çözünürlüğünü algılamak için <a href="#alternate">alternatif metodları</a> kullanmayacaksanız <code>ai-cookie.php</code> dosyasına ihtiyacınız olmayacak. Yani isterseniz silin, kimse kalabalığı sevmez.</p>
+    <p>NOT 3: Eğer güvenlik konusunda fazla pimpirikliyseniz ai-cache klasörünü web rootunuzun dışına taşıyabilirsiniz, dışarıya erişimini kapatmak için. PHP ve .htaccess dosyalarındaki klasör ayarlarını da buna göre düzenleyin.</p>
+
+    <h2>Zaten .htaccess dosyanız mı var?</h2>    
+    <p>Mevcut dosyanızın bir kopyasını almayı şiddetle tavsiye ediyorum. Bir aksilik durumunda hemen orijinal haline dönebilin diye.</p>
+    <p>Mevcut .htaccess dosyanızı açın ve aşağıdaki kodlarla başlayan bir bölüm var mı diye kontrol edin:</p>
+    <p><code>&lt;IfModule mod_rewrite.c&gt;</code></p>
+    <p>Eğer varsa, o bloğun içine şu kodları ekleyin:</p>
+    
+<pre><code># Adaptive-Images -----------------------------------------------------------------------------------
+
+# Add any directories you wish to omit from the Adaptive-Images process on a new line, as follows:
+# RewriteCond %{REQUEST_URI} !some-directory
+# RewriteCond %{REQUEST_URI} !another-directory
+
+RewriteCond %{REQUEST_URI} !assets
+
+# Send any GIF, JPG, or PNG request that IS NOT stored inside one of the above directories
+# to adaptive-images.php so we can select appropriately sized versions
+RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
+
+# END Adaptive-Images -------------------------------------------------------------------------------</code></pre>
+
+<p>Eğer böyle bir blok yoksa basitçe şu kodu kopyalayın ve htaccess dosyanızın içine yapıştırın:</p>
+
+<pre><code>&lt;IfModule mod_rewrite.c&gt;
+  Options +FollowSymlinks
+  RewriteEngine On
+
+  # Adaptive-Images -----------------------------------------------------------------------------------
+
+  # Her bir satıra aşağıdaki formatı kullanarak Adaptive-Images'ın çalışmamasını istediğiniz dizinleri belirtebilirsiniz:
+  # RewriteCond %{REQUEST_URI} !some-directory
+  # RewriteCond %{REQUEST_URI} !another-directory
+
+  RewriteCond %{REQUEST_URI} !assets
+
+  # Yukarıda belirtilmeyen klasörlerlerdeki tüm GIF, JPG ve PNG'leri
+  # adaptive.images.php'ye yönlendir. Böylece farklı boyutlardan doğru olana ulaşmayı sağla
+  RewriteRule \.(?:jpe?g|gif|png)$ adaptive-images.php
+
+  # END Adaptive-Images -------------------------------------------------------------------------------
+&lt;/IfModule&gt;</code></pre>
+
+    <h2 id="config">Ek ayarlar</h2>
+    <h3>.htaccess</h3>
+    <p>Yönergeler yorum satırı olarak ekldndi. (# ile başayan satırlar yorum satırıdır ve bir işleve sahip değiller.)</p>
+    <p>Bu yorum satırlarındaki yönergeleri izleyerek belirli dizinlerde Adaptive-Images'in çalışmamasını sağlayabilirsiniz.</p>
+    
+    <h3>PHP</h3>
+    <p>Şimdi PHP dosysını açıp CONFIG alanının içindeki ayarları kendinize göre düzenleyebilirsiniz. Orijinal hali şöyle:</p>
+      
+<pre><code>/* CONFIG ----------------------------------------------------------------------------------------------------------- */
+
+$resolutions   = array(1382, 992, 768, 480); // çözünürlüğe göre kırılma noktaları (ekran genişliği, pixel birimiyle)
+$cache_path    = "ai-cache"; // boyutlandırılmış resimlerin tutulacağı dizin. Ana dizininize göre belirtin!
+$jpg_quality   = 80; // oluşturulan JPG'in 100 üzerinden kalitesi
+$sharpen       = TRUE; // resimleri küçültmek detaylarda bulanıklığa sebep olabilir, boyutlandırılmış resimlerde keskinleştirme yapılsın mı?
+$watch_cache   = TRUE; // oluşturulmuş resimlerin miyadını doldurup doldurmadığını kontrol eder (aynı zamanda yeni oluşturulan resimlerin yeniden önbelleklenmesini sağlar)
+$browser_cache = 60*60*24*7; // Tarayıcı önbelleğinin ne kadar geçerli kalmalı? (saniye, dakika, saat, gün. Orijinal halinde 7 gündür)
+
+/* END CONFIG ----------------------------------------------------------------------------------------------------------
+------------------------- Yaptığınız şeye hakim değilseniz aşağıdaki satırlara dokunmayınız  ---------------------------
+--------------------------------------------------------------------------------------------------------------------- */</code></pre>
+  <p><code>$resolutions</code> üstünde çalışacağımız ekran genişlikleridir. Orijinal halinde; geniş ekranlar, normal ekranlar, tablet, telefon ve küçük telefonlar için farklı boyutlar tutar.</p>
+  <p>Genellikle, CSS ile responsive bir tasarım kullanıyorsanız, bu boyutlar media query'lerinizdeki kırılma noktalarıyla aynı değerlere sahip olacaktır.</p>
+  <p><code>$cache_path</code> Eğer önbelleklenmiş resimlerin bu klasöre atılmasını istemiyorsanız, başka bir klasör belirtebilirsiniz. Dizini kendi istediğinizle değiştirin ve sunucunuzda bu klasörden oluşturmayı unutmayın. adaptive-images.php bu klasörü otomatik olarak oluşturamayabilir.</p>
+  <p><code>$sharpen</code> boyutlanmış resimlerde keskinleştirme işlemini yapar. Genellikle bunun çalışması işe yarardır, ama sunucunuz çok yoğunsa bunu kapatmayı düşünebilirsiniz.</p>
+  <p><code>$watch_cache</code> Sunucunuz çok yoğunsa, performans artışı için bu özelliği FALSE değeriyle kapatmanız işinize yarayabilir. Ama bu da bir resmi değiştirdiğinizde, önbellek klasörünü sizin temizlemenizi gerektirir.</p>
+  
+<h2 id="alternate">Javasript kullanamayacaklar için alternatif metodlar</h2>
+
+<p>One of the weaknesses of the Adaptive Images process is its reliance on JavaScript to detect the visitors screen size, and set a cookie with that screen size inside it. The following is a solution for people who need the system to work without the use of JavaScript, but it does have a major caveat which is why this is not the default method, and why it is "unsupported" (I'm not going to troubleshoot problems you have with this method).</p>
+
+<h3>Alternatif metod</h3>
+<p>Yukarıdaki Javascript kodlarını kullanmak yerine sitenizin CSS kodlarının ÜSTÜNE aşağıdaki kodları ekleyin (head içerisinde):</p>
+<pre><code>&lt;style&gt;
+ @media only screen and (max-device-width: 479px) {
+   html { background-image:url(ai-cookie.php?maxwidth=479); } }
+ @media only screen and (min-device-width: 480px) and (max-device-width: 767px) {
+   html { background-image:url(ai-cookie.php?maxwidth=767); } }
+ @media only screen and (min-device-width: 768px) and (max-device-width: 991px) {
+   html { background-image:url(ai-cookie.php?maxwidth=991); } }
+ @media only screen and (min-device-width: 992px) and (max-device-width: 1381px) {
+   html { background-image:url(ai-cookie.php?maxwidth=1381); } }
+ @media only screen and (min-device-width: 1382px) {
+   html { background-image:url(ai-cookie.php?maxwidth=unknown); } }
+&lt;/style&gt;</code></pre>
+<p>Eğer bu yolu seçtiyseniz CSS'teki genişliklerin adaptive-images.php dosyasındakilerle eşleştiğinizden emin olun. Ayrıca ana dizinizde <code>ai-cookie.php</code> dosyasının da olması gerekir (bu yolu kullanmayacaksanız bu dosyaya hiç ihtiyacınız yok).</p>
+
+<h3>Uyarı</h3>
+<p>Javascript yerine bu metodu kullanmanız durumunda, kullanıcıların sitenizi ilk ziyaretinde resimler orijinal boyutlarıyla yüklenir. Ama tüm alt sayfalar doğru şekilde çalışacaktır! Bu da şu demek: bu çözüm sadece $mobile_first ayarının FALSE olduğu durumlarda mantıklı olacaktır. Aksi halde, ziyaretçilerinizin büyük bir çoğunluğu sitenizi ilk ziyaretlerinde çok küçük resimlerle karşılaşacaklar.</p>
+<p>Bunun sebebi de tarayıcıların siteleri yükleme şekilleridir. Bir tarayıcının HTML'i yüklerken yaptığı ilk şey, yazılan sırasıyla, normal bir AI kurulumunda önce HTML'i yükler ve gömülen Javascriptleri çalıştırır (Cookieleri hazırlayan kod). Daha sonra, sayfanın kalanını yüklemeye sırayla devam eder. Uzun lafın kısası, bu sayede, tarayıcı bir resim etiketi bulup onu yüklemeye başladığında, çerezler çoktan ayarlanmış olurlar.</p>
+<p>CSS metodunu kullandığınızda işler bu şekilde yürümez. Çünkü CSS metodu başka bir dosyaya dayanır. "background-image" için bir PHP dosyasına ulaşır. Bu PHP dosyasının da tek işlevi ufak kodlarla diğer metodda Javascript'in yaptığı gibi çerezi tanımlamaktır. Buradaki sorun, tarayıcılar böyle dış dosyalara erişirken sayfayı yüklemeyi bırakmazlar. Bir yandan bu dosyadan yanıt beklerken, bir yandan da diğer dosyaları yüklemeye devam eder. Bu da demek ki, bir resime bizim mucizevi php dosyamızdan önce ulaşabilir. Bu sadece ilk ziyarette yaşanacak bir sorundur, ve AI no-cookie durumlarıyla baş etmek için başka sihirli yollar dener.</p>
+
+<h3>Olası aksaklıklar</h3>
+<p>Çoğu zaman kullanıcıların yaşadığı sorunlar temel iki şeye dayanır:</p>
+<p><strong>Eğer resimler yok oluyorsa</strong>, .htaccess ayarlarınızda bir sorun vardır. Genellikle Wordpress sitelerinde bu sorun görülür. Çünkü sunucu ve wordpress çoğu sunucudan farklı şeylere ihtiyaç duyar. Htaccess dosyanızla biraz oynamanız ve yukarıdaki ModRewrite ile ilgili bölümü tekrar okumanız sorunu çözecektir.</p>
+<p><strong>Eğer siyah hata sayfaları görüyorsanız</strong> AI çalışıyor, yani .htaccess sorunsuz çalışıyor. Resimdeki mesjaları okuyun. Çoğu zaman bu hatayı görürsünüz çünkü sunucunuz dosya yazımları için güçlü izinler ister. ai-cache klasörünün yazım izinlerini 775, o da olmazsa 777'ye getirmeyi deneyin. Ama paylaşılan sunucularda bu izinlerin çok güvenli olmayacağını ve sunucunuzun yöneticisiyle görüşmenizin iyi olacağını bilin.</p>
+  </body>
+</html>

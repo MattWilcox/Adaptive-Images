@@ -30,7 +30,7 @@ $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen o
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
 
-$tinypng_key   = "gsM9MBlX_3OH6JKeACCDPZ9iAaG1f5ms"; // FALSE or your TinyPNG API KEY
+$tinypng_key   = FALSE; // FALSE or your TinyPNG API KEY
 $pngquant      = FALSE; // whether to use pngquant
 $png_quality   = 75; // the quality of any generated PNGs on a scale of 0 to 100 - use for pngquant
 

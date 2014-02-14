@@ -6,6 +6,9 @@ h2. Updated PNG Compression
 
 Added support for tinypng.com and pngquant
 
+- tinypng.com support is tested and working correctly
+- pngquant to test
+
 h2. Benefits
 
 * Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.

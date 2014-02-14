@@ -12,15 +12,6 @@ class CacheDirWritableException extends Exception{};
    LEGAL:
    Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
-   EDIT:
-   Updated by Dan Crack
-
-   Homepage: http://www.freethinkingdesign.co.uk
-   Twitter:  @Free_Thinking
-
-   Added support for tinypng.com and pngquant to optimise png caching.
-
-
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
 $resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
@@ -478,7 +469,5 @@ if (file_exists($cache_file)) { // it exists cached at that size
 
 /* It exists as a source file, and it doesn't exist cached - lets make one: */
 $file = generateImage($source_file, $cache_file, $resolution);
-
-
 
 sendImage($file, $browser_cache);

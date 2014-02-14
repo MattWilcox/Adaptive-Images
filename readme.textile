@@ -4,10 +4,9 @@ Is a solution to automatically create, cache, and deliver device-appropriate ver
 
 h2. Updated PNG Compression
 
-Added support for tinypng.com and pngquant
+Added support for tinypng.com
 
-- tinypng.com support is tested and working correctly
-- pngquant to test
+Add your tinypng.com api key to the config to turn it on.
 
 h2. Benefits
 

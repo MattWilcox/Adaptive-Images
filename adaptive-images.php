@@ -22,8 +22,6 @@ $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures upda
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
 
 $tinypng_key   = FALSE; // FALSE or your TinyPNG API KEY
-$pngquant      = FALSE; // whether to use pngquant
-$png_quality   = 75; // the quality of any generated PNGs on a scale of 0 to 100 - use for pngquant
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -259,8 +257,6 @@ function tinyPngImage($input, $output, $key) {
         sendErrorImage("The cache directory is not writable"); //: $e->getMessage()");
     }
 
-
-
     $request = curl_init();
     curl_setopt_array($request, array(
             CURLOPT_URL => "https://api.tinypng.com/shrink",
@@ -293,54 +289,11 @@ function tinyPngImage($input, $output, $key) {
             }
         }
     } else {
-//        print(curl_error($request));
         /* Something went wrong! */
-        sendErrorImage("tinypng Compression failed");
-        //      print("Compression failed");
+//        print(curl_error($request));
+        sendErrorImage("Compression failed");
     }
 }
-
-/**
- * Optimizes PNG file with pngquant 1.8 or later (reduces file size of 24-bit/32-bit PNG images).
- *
- * You need to install pngquant 1.8 on the server (ancient version 1.0 won't work).
- * There's package for Debian/Ubuntu and RPM for other distributions on http://pngquant.org
- *
- * @param $path_to_png_file string - path to any PNG file, e.g. $_FILE['file']['tmp_name']
- * @param $output string - where to write to.
- * @param $max_quality int - conversion quality, useful values from 60 to 100 (smaller number = smaller file)
- * @return string - content of PNG file after conversion
- */
-function compress_png($path_to_png_file, $output, $max_quality = 90)
-{
-    if (!file_exists($path_to_png_file)) {
-        sendErrorImage("File does not exist"); //: $path_to_png_file");
-    }
-
-    try{
-        checkCacheDir($output);
-    } catch ( CacheDirCreateException $e ) {
-        sendErrorImage("Failed to create cache directory"); //: $e->getMessage()");
-    } catch ( CacheDirWritableException $e ) {
-        sendErrorImage("The cache directory is not writable"); //: $e->getMessage()");
-    }
-
-    // guarantee that quality won't be worse than that.
-    $min_quality = 60;
-
-    // '-' makes it use stdout, required to save to $compressed_png_content variable
-    // '<' makes it read from the given file path
-    // escapeshellarg() makes this safe to use with any path
-    $compressed_png_content = shell_exec("pngquant --quality=$min_quality-$max_quality - < ".escapeshellarg(    $path_to_png_file));
-
-    if (!$compressed_png_content) {
-        sendErrorImage("Conversion to compressed PNG failed. Is pngquant 1.8+ installed on the server?");
-    }
-
-    file_put_contents($output, $compressed_png_content);
-}
-
-
 
 
 // check if the file exists at all
@@ -444,14 +397,6 @@ if (file_exists($cache_file)) { // it exists cached at that size
 
         /* if there is no cached file */
         if ( !file_exists($png_cache_file) ) {
-
-            /* If we're using pngquant */
-            if ( $pngquant ) {
-                compress_png($cache_file, $png_cache_file, $png_quality);
-
-                /* ensure that tinypng doesn't get called */
-                $tinypng_key = false;
-            }
 
             /* If we're using tinypng, push the image through their service  */
             if ( $tinypng_key !== false ) {

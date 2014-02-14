@@ -22,14 +22,13 @@ class CacheDirWritableException extends Exception
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
-$cache_path = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
-$jpg_quality = 75; // the quality of any generated JPGs on a scale of 0 to 100
-$sharpen = true; // Shrinking images can blur details, perform a sharpen on re-scaled images?
-$watch_cache = true; // check that the adapted image isn't stale (ensures updated source images are re-cached)
+$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+$cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
+$jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
+$sharpen       = true; // Shrinking images can blur details, perform a sharpen on re-scaled images?
+$watch_cache   = true; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60 * 60 * 24 * 7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
-
-$tinypng_key = false; // FALSE or your TinyPNG API KEY
+$tinypng_key   = false; // FALSE or your TinyPNG API KEY
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------

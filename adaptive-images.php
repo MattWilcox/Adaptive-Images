@@ -18,6 +18,8 @@ $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$tinypng_key   = "gsM9MBlX_3OH6JKeACCDPZ9iAaG1f5ms"; // FALSE or your TinyPNG API KEY
+
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
@@ -225,6 +227,49 @@ function generateImage($source_file, $cache_file, $resolution) {
   return $cache_file;
 }
 
+/* run a png image through tinypng.com and return the smaller file */
+function tinyPngImage($key, $file) {
+    $output = $input = $file;
+
+    $request = curl_init();
+    curl_setopt_array($request, array(
+            CURLOPT_URL => "https://api.tinypng.com/shrink",
+            CURLOPT_USERPWD => "api:" . $key,
+            CURLOPT_POSTFIELDS => file_get_contents($input),
+            CURLOPT_BINARYTRANSFER => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            /* Uncomment below if you have trouble validating our SSL certificate.
+               Download cacert.pem from: http://curl.haxx.se/ca/cacert.pem */
+            // CURLOPT_CAINFO => __DIR__ . "/cacert.pem",
+            CURLOPT_SSL_VERIFYPEER => true
+        ));
+
+    $response = curl_exec($request);
+    if (curl_getinfo($request, CURLINFO_HTTP_CODE) === 201) {
+        /* Compression was successful, retrieve output from Location header. */
+        $headers = substr($response, 0, curl_getinfo($request, CURLINFO_HEADER_SIZE));
+        foreach (explode("\r\n", $headers) as $header) {
+            if (substr($header, 0, 10) === "Location: ") {
+                $request = curl_init();
+                curl_setopt_array($request, array(
+                        CURLOPT_URL => substr($header, 10),
+                        CURLOPT_RETURNTRANSFER => true,
+                        /* Uncomment below if you have trouble validating our SSL certificate. */
+                        // CURLOPT_CAINFO => __DIR__ . "/cacert.pem",
+                        CURLOPT_SSL_VERIFYPEER => true
+                    ));
+                file_put_contents($output, curl_exec($request));
+            }
+        }
+    } else {
+//        print(curl_error($request));
+        /* Something went wrong! */
+  //      print("Compression failed");
+    }
+}
+
+
 // check if the file exists at all
 if (!file_exists($source_file)) {
   header("Status: 404 Not Found");
@@ -319,4 +364,10 @@ if (file_exists($cache_file)) { // it exists cached at that size
 
 /* It exists as a source file, and it doesn't exist cached - lets make one: */
 $file = generateImage($source_file, $cache_file, $resolution);
+
+/* If we're using tinypng push the image through their service if it's a png */
+if ( $tinypng_key && exif_imagetype($file) == IMAGETYPE_PNG ) {
+    $file = tinyPngImage($tinypng_key, $file);
+}
+
 sendImage($file, $browser_cache);

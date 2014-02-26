@@ -136,9 +136,7 @@ function generateImage($source_file, $cache_file, $resolution) {
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
   // Check the image dimensions
-  $dimensions   = GetImageSize($source_file);
-  $width        = $dimensions[0];
-  $height       = $dimensions[1];
+  list($width, $height) = GetImageSize($source_file);
 
   // Do we need to downscale the image?
   if ($width <= $resolution) { // no, because the width of the source image is already less than the client width

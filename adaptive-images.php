@@ -77,12 +77,6 @@ function sendErrorImage($message) {
   $requested_file = basename($requested_uri);
   $source_file    = $document_root.$requested_uri;
 
-  if(!is_mobile()){
-    $is_mobile = "FALSE";
-  } else {
-    $is_mobile = "TRUE";
-  }
-
   $im            = ImageCreateTrueColor(800, 300);
   $text_color    = ImageColorAllocate($im, 233, 14, 91);
   $message_color = ImageColorAllocate($im, 91, 112, 233);

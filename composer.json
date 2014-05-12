@@ -7,13 +7,13 @@
             "email": "alex@someoddpilot.com"
         }
     ],
-    "version": "2.0.1",
+    "version": "2.0.2",
     "minimum-stability": "alpha",
     "require": {},
     "license": "Apache-2.0",
     "autoload": {
         "psr-0": {
-            "someoddpilot\\AdaptiveImages": ""
+            "AdaptiveImages": ""
         }
     }
 }

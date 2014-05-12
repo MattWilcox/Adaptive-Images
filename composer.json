@@ -1,0 +1,12 @@
+{
+    "name": "alexsomeoddpilot/adaptive-images",
+    "description": "Based on Matt Wilcox's repo. Automatically adapts your existing HTML images for mobile devices. No mark-up changes needed.",
+    "authors": [
+        {
+            "name": "Alex Robertson",
+            "email": "alex@someoddpilot.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {}
+}

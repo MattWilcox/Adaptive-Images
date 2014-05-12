@@ -30,19 +30,26 @@ class AdaptiveImages
     private $resolution;
 
     public function __construct(
-        $resolutions = array(1382, 992, 768, 480),
-        $cachePath = "ai-cache",
-        $jpgQuality = 75,
-        $sharpen = true,
-        $watchCache = true,
-        $browserCache = 604800
+        $options = array()
     ) {
-        $this->resolutions = $resolutions;
-        $this->cachePath = $cachePath;
-        $this->jpgQuality = $jpgQuality;
-        $this->sharpen = $sharpen;
-        $this->watchCache = $watchCache;
-        $this->browserCache = $browserCache;
+        $options = array_merge(
+            array(
+                "resolutions"  => array(1382, 992, 768, 480),
+                "cachePath"    => "ai-cache",
+                "jpgQuality"   => 75,
+                "sharpen"      => true,
+                "watchCache"   => true,
+                "browserCache" => 604800
+            ),
+            $options
+        );
+
+        $this->resolutions  = $options["resolutions"];
+        $this->cachePath    = $options["cachePath"];
+        $this->jpgQuality   = $options["jpgQuality"];
+        $this->sharpen      = $options["sharpen"];
+        $this->watchCache   = $options["watchCache"];
+        $this->browserCache = $options["browserCache"];
 
         // get all of the required data from the HTTP request
         $this->documentRoot  = $_SERVER['DOCUMENT_ROOT'];
@@ -78,7 +85,7 @@ class AdaptiveImages
             // does the cookie look valid? [whole number, comma, potential floating number]
             // no it doesn't look valid
             if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", $cookieValue)) {
-                setcookie("resolution", "$cookieValue", time()-100); // delete the mangled cookie
+                setcookie("resolution", $cookieValue, time()-100); // delete the mangled cookie
             } else {
                 // the cookie is valid, do stuff with it
                 $cookieData   = explode(",", $_COOKIE['resolution']);
@@ -123,7 +130,8 @@ class AdaptiveImages
         // No resolution was found (no cookie or invalid cookie)
         if (!$resolution) {
             // We send the lowest resolution for mobile-first approach, and highest otherwise
-            $resolution = $is_mobile ? min($this->resolutions) : max($this->resolutions);
+            $resolution = ($this->isMobile()) ?
+                min($this->resolutions) : max($this->resolutions);
         }
 
         // if the requested URL starts with a slash, remove the slash
@@ -131,12 +139,14 @@ class AdaptiveImages
             $this->requestedUri = substr($this->requestedUri, 1);
         }
 
-        /* whew might the cache file be? */
+        // where might the cache file be?
         $cacheFile = $this->documentRoot . "/" . $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
 
         // Use the resolution value as a path variable and check
         // to see if an image of the same name exists at that path
         if (file_exists($cacheFile)) {
+            var_dump($cacheFile);
+
             // it exists cached at that size
             // if cache watching is enabled, compare cache and source
             // modified dates to ensure the cache isn't stale
@@ -311,7 +321,7 @@ class AdaptiveImages
         // NOTE: requires PHP compiled with the bundled version of GD
         // (see http://php.net/manual/en/function.imageconvolution.php)
         if ($this->sharpen && function_exists('imageconvolution')) {
-            $intSharpness = findSharp($width, $newWidth);
+            $intSharpness = $this->findSharp($width, $newWidth);
             $arrMatrix = array(
                 array(-1, -2, -1),
                 array(-2, $intSharpness + 12, -2),
@@ -347,7 +357,7 @@ class AdaptiveImages
                 $gotSaved = ImageGif($dst, $cacheFile);
                 break;
             default:
-                $gotSaved = ImageJpeg($dst, $cacheFile, $jpgQuality);
+                $gotSaved = ImageJpeg($dst, $cacheFile, $this->jpgQuality);
                 break;
         }
 

@@ -201,11 +201,11 @@ class AdaptiveImages
     private function sendImage($filename, $browserCache)
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (in_array($extension, array('png', 'gif', 'jpeg'))) {
-            header("Content-Type: image/".$extension);
-        } else {
-            header("Content-Type: image/jpeg");
+        if (! in_array($extension, array('png', 'gif', 'jpeg'))) {
+            $extension = "jpeg";
         }
+
+        header("Content-Type: image/" . $extension);
 
         header("Cache-Control: private, max-age=" . $browserCache);
         header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $browserCache) . ' GMT');

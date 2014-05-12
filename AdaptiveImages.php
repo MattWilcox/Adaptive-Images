@@ -96,4 +96,33 @@ class AdaptiveImages
 
         exit();
     }
+
+    /**
+     * helper function: Create and send an image with an error message.
+     */
+    private function sendErrorImage($message)
+    {
+        $imageResource = ImageCreateTrueColor(800, 300);
+        $textColor     = ImageColorAllocate($imageResource, 233, 14, 91);
+        $messageColor  = ImageColorAllocate($imageResource, 91, 112, 233);
+
+        ImageString($imageResource, 5, 5, 5, "Adaptive Images encountered a problem:", $textColor);
+        ImageString($imageResource, 3, 5, 25, $message, $messageColor);
+
+        ImageString($imageResource, 5, 5, 85, "Potentially useful information:", $textColor);
+        ImageString($imageResource, 3, 5, 105, "DOCUMENT ROOT IS: " . $this->documentRoot, $textColor);
+        ImageString($imageResource, 3, 5, 125, "REQUESTED URI WAS: " . $this->requestedUri, $textColor);
+        ImageString($imageResource, 3, 5, 145, "REQUESTED FILE WAS: " . $this->requestedFile, $textColor);
+        ImageString($imageResource, 3, 5, 165, "SOURCE FILE IS: " . $this->sourceFile, $textColor);
+        ImageString($imageResource, 3, 5, 185, "DEVICE IS MOBILE? " . $this->isMobile(), $textColor);
+
+        header("Cache-Control: no-store");
+        header('Expires: ' . gmdate('D, d M Y H:i:s', time() - 1000) . ' GMT');
+        header('Content-Type: image/jpeg');
+
+        ImageJpeg($imageResource);
+        ImageDestroy($imageResource);
+
+        exit();
+    }
 }

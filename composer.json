@@ -7,7 +7,7 @@
             "email": "alex@someoddpilot.com"
         }
     ],
-    "version": "2.0.2",
+    "version": "2.0.4",
     "minimum-stability": "alpha",
     "require": {},
     "license": "Apache-2.0",

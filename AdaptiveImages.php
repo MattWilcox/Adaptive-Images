@@ -130,4 +130,19 @@ class AdaptiveImages
         $intRes   = $intA + $intB * $intFinal + $intC * $intFinal * $intFinal;
         return max(round($intRes), 0);
     }
+
+    // refreshes the cached image if it's outdated
+    private function refreshCache($sourceFile, $cacheFile, $resolution)
+    {
+        if (file_exists($cacheFile)) {
+            // not modified
+            if (filemtime($cacheFile) >= filemtime($sourceFile)) {
+                return $cacheFile;
+            }
+
+            // modified, clear it
+            unlink($cacheFile);
+        }
+        return generateImage($sourceFile, $cacheFile, $resolution);
+    }
 }

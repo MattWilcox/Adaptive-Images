@@ -128,7 +128,7 @@ class AdaptiveImages
         }
 
         // No resolution was found (no cookie or invalid cookie)
-        if (!$resolution) {
+        if (empty($resolution)) {
             // We send the lowest resolution for mobile-first approach, and highest otherwise
             $resolution = ($this->isMobile()) ?
                 min($this->resolutions) : max($this->resolutions);

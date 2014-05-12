@@ -35,11 +35,11 @@ class AdaptiveImages
         $jpgQuality = 75,
         $sharpen = true,
         $watchCache = true,
-        $browserCache = 60*60*24*7
+        $browserCache = 604800
     ) {
         $this->resolutions = $resolutions;
         $this->cachePath = $cachePath;
-        $this->jpegQuality = $jpegQuality;
+        $this->jpgQuality = $jpgQuality;
         $this->sharpen = $sharpen;
         $this->watchCache = $watchCache;
         $this->browserCache = $browserCache;
@@ -57,7 +57,7 @@ class AdaptiveImages
     public function getImage()
     {
         // check if the file exists at all
-        if (!file_exists($source_file)) {
+        if (!file_exists($this->sourceFile)) {
             header("Status: 404 Not Found");
             exit();
         }
@@ -67,49 +67,62 @@ class AdaptiveImages
             if (!function_exists('dl') || !dl('gd.so')) { // and we can't load it either
                 // no GD available, so deliver the image straight up
                 trigger_error('You must enable the GD extension to make use of Adaptive Images', E_USER_WARNING);
-                sendImage($source_file, $browser_cache);
+                sendImage($this->sourceFile, $this->browserCache);
             }
         }
 
         /* Check to see if a valid cookie exists */
         if (isset($_COOKIE['resolution'])) {
-            $cookie_value = $_COOKIE['resolution'];
+            $cookieValue = $_COOKIE['resolution'];
 
             // does the cookie look valid? [whole number, comma, potential floating number]
-            if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", "$cookie_value")) { // no it doesn't look valid
-                setcookie("resolution", "$cookie_value", time()-100); // delete the mangled cookie
-            } else { // the cookie is valid, do stuff with it
-                $cookie_data   = explode(",", $_COOKIE['resolution']);
-                $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
-                $total_width   = $client_width;
-                $pixel_density = 1; // set a default, used for non-retina style JS snippet
-                if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
-                    $pixel_density = $cookie_data[1];
+            // no it doesn't look valid
+            if (! preg_match("/^[0-9]+[,]*[0-9\.]+$/", $cookieValue)) {
+                setcookie("resolution", "$cookieValue", time()-100); // delete the mangled cookie
+            } else {
+                // the cookie is valid, do stuff with it
+                $cookieData   = explode(",", $_COOKIE['resolution']);
+
+                // the base resolution (CSS pixels)
+                $clientWidth  = (int) $cookieData[0];
+                $totalWidth   = $clientWidth;
+
+                // set a default, used for non-retina style JS snippet
+                $pixelDensity = 1;
+
+                if (@$cookieData[1]) {
+                    // the device's pixel density factor (physical pixels per CSS pixel)
+                    $pixelDensity = $cookieData[1];
                 }
 
-                rsort($resolutions); // make sure the supplied break-points are in reverse size order
-                $resolution = $resolutions[0]; // by default use the largest supported break-point
+                // make sure the supplied break-points are in reverse size order
+                rsort($resolutions);
+                // by default use the largest supported break-point
+                $resolution = $resolutions[0];
 
                 // if pixel density is not 1,
                 // then we need to be smart about adapting
                 // and fitting into the defined breakpoints
-                if ($pixel_density != 1) {
-                    $total_width = $client_width * $pixel_density; // required physical pixel width of the image
+                if ($pixelDensity != 1) {
+                    // required physical pixel width of the image
+                    $totalWidth = $clientWidth * $pixelDensity;
 
                     // the required image width is bigger than any existing value in $resolutions
-                    if ($total_width > $resolutions[0]) {
+                    if ($totalWidth > $resolutions[0]) {
                         // firstly, fit the CSS size into a break point ignoring the multiplier
-                        foreach ($resolutions as $break_point) { // filter down
-                            if ($total_width <= $break_point) {
+                        foreach ($resolutions as $break_point) {
+                            // filter down
+                            if ($totalWidth <= $break_point) {
                                 $resolution = $break_point;
                             }
                         }
                         // now apply the multiplier
-                        $resolution = $resolution * $pixel_density;
+                        $resolution = $resolution * $pixelDensity;
                     } else {
                         // the required image fits into the existing breakpoints in $resolutions
-                        foreach ($resolutions as $break_point) { // filter down
-                            if ($total_width <= $break_point) {
+                        foreach ($resolutions as $break_point) {
+                            if ($totalWidth <= $break_point) {
+                                // filter down
                                 $resolution = $break_point;
                             }
                         }
@@ -117,7 +130,7 @@ class AdaptiveImages
                 } else {
                     // pixel density is 1, just fit it into one of the breakpoints
                     foreach ($resolutions as $break_point) { // filter down
-                        if ($total_width <= $break_point) {
+                        if ($totalWidth <= $break_point) {
                             $resolution = $break_point;
                         }
                     }
@@ -137,7 +150,7 @@ class AdaptiveImages
         }
 
         /* whew might the cache file be? */
-        $cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;
+        $cache_file = $document_root . "/" . $cache_path . "/" . $resolution . "/" . $requested_uri;
 
         // Use the resolution value as a path variable and check
         // to see if an image of the same name exists at that path
@@ -146,15 +159,15 @@ class AdaptiveImages
             // if cache watching is enabled, compare cache and source
             // modified dates to ensure the cache isn't stale
             if ($watch_cache) {
-                $cache_file = refreshCache($source_file, $cache_file, $resolution);
+                $cache_file = refreshCache($this->sourceFile, $cache_file, $resolution);
             }
 
-            sendImage($cache_file, $browser_cache);
+            sendImage($cache_file, $this->browserCache);
         }
 
         // It exists as a source file, and it doesn't exist cached - lets make one:
-        $file = generateImage($source_file, $cache_file, $resolution);
-        sendImage($file, $browser_cache);
+        $file = generateImage($this->sourceFile, $cache_file, $resolution);
+        sendImage($file, $this->browserCache);
     }
 
     private function isMobile()
@@ -166,13 +179,16 @@ class AdaptiveImages
     private function setupCache()
     {
         // does the $cache_path directory exist already?
-        if (!is_dir($this->$documentRoot . "/" . $cache_path)) {
+        if (!is_dir($this->documentRoot . "/" . $this->cachePath)) {
             // no, so make it
-            if (!mkdir($this->$documentRoot . "/" . $cache_path, 0755, true)) {
+            if (!mkdir($this->documentRoot . "/" . $this->cachePath, 0755, true)) {
                 // check again to protect against race conditions
-                if (!is_dir($this->$documentRoot . "/" . $cache_path)) {
+                if (!is_dir($this->documentRoot . "/" . $this->cachePath)) {
                     // uh-oh, failed to make that directory
-                    $this->sendErrorImage("Failed to create cache directory at: $document_root/$cache_path");
+                    $this->sendErrorImage(
+                        "Failed to create cache directory at: " .
+                        $this->documentRoot . "/" . $this->cachePath
+                    );
                 }
             }
         }

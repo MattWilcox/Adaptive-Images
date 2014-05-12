@@ -96,9 +96,9 @@ class AdaptiveImages
                 }
 
                 // make sure the supplied break-points are in reverse size order
-                rsort($resolutions);
+                rsort($this->resolutions);
                 // by default use the largest supported break-point
-                $resolution = $resolutions[0];
+                $resolution = $this->resolutions[0];
 
                 // if pixel density is not 1,
                 // then we need to be smart about adapting
@@ -107,33 +107,15 @@ class AdaptiveImages
                     // required physical pixel width of the image
                     $totalWidth = $clientWidth * $pixelDensity;
 
-                    // the required image width is bigger than any existing value in $resolutions
-                    if ($totalWidth > $resolutions[0]) {
-                        // firstly, fit the CSS size into a break point ignoring the multiplier
-                        foreach ($resolutions as $break_point) {
-                            // filter down
-                            if ($totalWidth <= $break_point) {
-                                $resolution = $break_point;
-                            }
-                        }
-                        // now apply the multiplier
+                    $resolution = $this->breakpoint($resolution, $totalWidth, $this->resolutions);
+
+                    // the required image width is bigger than any existing value in $this->resolutions
+                    if ($totalWidth > $this->resolutions[0]) {
+                        // apply the multiplier
                         $resolution = $resolution * $pixelDensity;
-                    } else {
-                        // the required image fits into the existing breakpoints in $resolutions
-                        foreach ($resolutions as $break_point) {
-                            if ($totalWidth <= $break_point) {
-                                // filter down
-                                $resolution = $break_point;
-                            }
-                        }
                     }
                 } else {
-                    // pixel density is 1, just fit it into one of the breakpoints
-                    foreach ($resolutions as $break_point) { // filter down
-                        if ($totalWidth <= $break_point) {
-                            $resolution = $break_point;
-                        }
-                    }
+                    $resolution = $this->breakpoint($resolution, $totalWidth, $this->resolutions);
                 }
             }
         }
@@ -141,33 +123,44 @@ class AdaptiveImages
         // No resolution was found (no cookie or invalid cookie)
         if (!$resolution) {
             // We send the lowest resolution for mobile-first approach, and highest otherwise
-            $resolution = $is_mobile ? min($resolutions) : max($resolutions);
+            $resolution = $is_mobile ? min($this->resolutions) : max($this->resolutions);
         }
 
         // if the requested URL starts with a slash, remove the slash
-        if (substr($requested_uri, 0, 1) == "/") {
-            $requested_uri = substr($requested_uri, 1);
+        if (substr($this->requestedUri, 0, 1) == "/") {
+            $this->requestedUri = substr($this->requestedUri, 1);
         }
 
         /* whew might the cache file be? */
-        $cache_file = $document_root . "/" . $cache_path . "/" . $resolution . "/" . $requested_uri;
+        $cacheFile = $this->documentRoot . "/" . $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
 
         // Use the resolution value as a path variable and check
         // to see if an image of the same name exists at that path
-        if (file_exists($cache_file)) {
+        if (file_exists($cacheFile)) {
             // it exists cached at that size
             // if cache watching is enabled, compare cache and source
             // modified dates to ensure the cache isn't stale
-            if ($watch_cache) {
-                $cache_file = refreshCache($this->sourceFile, $cache_file, $resolution);
+            if ($this->watchCache) {
+                $cacheFile = $this->refreshCache($this->sourceFile, $cacheFile, $resolution);
             }
 
-            sendImage($cache_file, $this->browserCache);
+            $this->sendImage($cacheFile, $this->browserCache);
         }
 
         // It exists as a source file, and it doesn't exist cached - lets make one:
-        $file = generateImage($this->sourceFile, $cache_file, $resolution);
-        sendImage($file, $this->browserCache);
+        $file = $this->generateImage($this->sourceFile, $cacheFile, $resolution);
+        $this->sendImage($file, $this->browserCache);
+    }
+
+    private function breakpoint($resolution, $width, $breakpoints = array())
+    {
+        foreach ($breakpoints as $breakpoint) {
+            if ($width <= $breakpoint) {
+                $resolution = $breakpoint;
+            }
+        }
+
+        return $resolution;
     }
 
     private function isMobile()
@@ -178,7 +171,7 @@ class AdaptiveImages
 
     private function setupCache()
     {
-        // does the $cache_path directory exist already?
+        // does the $cachePath directory exist already?
         if (!is_dir($this->documentRoot . "/" . $this->cachePath)) {
             // no, so make it
             if (!mkdir($this->documentRoot . "/" . $this->cachePath, 0755, true)) {
@@ -317,7 +310,7 @@ class AdaptiveImages
         // sharpen the image?
         // NOTE: requires PHP compiled with the bundled version of GD
         // (see http://php.net/manual/en/function.imageconvolution.php)
-        if ($sharpen == true && function_exists('imageconvolution')) {
+        if ($this->sharpen && function_exists('imageconvolution')) {
             $intSharpness = findSharp($width, $newWidth);
             $arrMatrix = array(
                 array(-1, -2, -1),

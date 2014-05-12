@@ -140,13 +140,11 @@ class AdaptiveImages
         }
 
         // where might the cache file be?
-        $cacheFile = $this->documentRoot . "/" . $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
+        $cacheFile = $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
 
         // Use the resolution value as a path variable and check
         // to see if an image of the same name exists at that path
         if (file_exists($cacheFile)) {
-            var_dump($cacheFile);
-
             // it exists cached at that size
             // if cache watching is enabled, compare cache and source
             // modified dates to ensure the cache isn't stale

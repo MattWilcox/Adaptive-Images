@@ -18,7 +18,7 @@ Find out more, and view examples at [http://adaptive-images.com](http://adaptive
 
 ## Legal
 
-Adaptive Images by Matt Wilcox is licensed under a "Creative Commons Attribution 3.0 Unported License":http://creativecommons.org/licenses/by/3.0/
+Adaptive Images by Matt Wilcox is licensed under a [Creative Commons Attribution 3.0 Unported License](http://creativecommons.org/licenses/by/3.0/)
 
 ##Instructions
 

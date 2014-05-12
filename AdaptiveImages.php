@@ -145,4 +145,106 @@ class AdaptiveImages
         }
         return generateImage($sourceFile, $cacheFile, $resolution);
     }
+
+    // generates the given cache file for the given source file with the given resolution
+    private function generateImage($sourceFile, $cacheFile, $resolution)
+    {
+        $extension = strtolower(pathinfo($sourceFile, PATHINFO_EXTENSION));
+
+        // Check the image dimensions
+        $dimensions   = GetImageSize($sourceFile);
+        $width        = $dimensions[0];
+        $height       = $dimensions[1];
+
+        // Do we need to downscale the image?
+        // no, because the width of the source image is already less than the client width
+        if ($width <= $resolution) {
+            return $sourceFile;
+        }
+
+        // We need to resize the source image to the width of the resolution breakpoint we're working with
+        $ratio     = $height/$width;
+        $newWidth  = $resolution;
+        $newHeight = ceil($newWidth * $ratio);
+
+        // re-sized image
+        $dst        = ImageCreateTrueColor($newWidth, $newHeight);
+
+        switch ($extension) {
+            case 'png':
+                $src = @ImageCreateFromPng($sourceFile);
+                break;
+            case 'gif':
+                $src = @ImageCreateFromGif($sourceFile);
+                break;
+            default:
+                $src = @ImageCreateFromJpeg($sourceFile);
+                // Enable interlancing (progressive JPG, smaller size file)
+                ImageInterlace($dst, true);
+                break;
+        }
+
+        if ($extension=='png') {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+            imagefilledrectangle($dst, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        // do the resize in memory
+        ImageCopyResampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        ImageDestroy($src);
+
+        // sharpen the image?
+        // NOTE: requires PHP compiled with the bundled version of GD
+        // (see http://php.net/manual/en/function.imageconvolution.php)
+        if ($sharpen == true && function_exists('imageconvolution')) {
+            $intSharpness = findSharp($width, $newWidth);
+            $arrMatrix = array(
+                array(-1, -2, -1),
+                array(-2, $intSharpness + 12, -2),
+                array(-1, -2, -1)
+            );
+            imageconvolution($dst, $arrMatrix, $intSharpness, 0);
+        }
+
+        $cacheDir = dirname($cacheFile);
+
+        // does the directory exist already?
+        if (!is_dir($cacheDir)) {
+            if (!mkdir($cacheDir, 0755, true)) {
+                // check again if it really doesn't exist to protect against race conditions
+                if (!is_dir($cacheDir)) {
+                    // uh-oh, failed to make that directory
+                    ImageDestroy($dst);
+                    sendErrorImage("Failed to create cache directory: $cacheDir");
+                }
+            }
+        }
+
+        if (!is_writable($cacheDir)) {
+            sendErrorImage("The cache directory is not writable: $cacheDir");
+        }
+
+        // save the new file in the appropriate path, and send a version to the browser
+        switch ($extension) {
+            case 'png':
+                $gotSaved = ImagePng($dst, $cacheFile);
+                break;
+            case 'gif':
+                $gotSaved = ImageGif($dst, $cacheFile);
+                break;
+            default:
+                $gotSaved = ImageJpeg($dst, $cacheFile, $jpgQuality);
+                break;
+        }
+
+        ImageDestroy($dst);
+
+        if (!$gotSaved && !file_exists($cacheFile)) {
+            sendErrorImage("Failed to create image: $cacheFile");
+        }
+
+        return $cacheFile;
+    }
 }

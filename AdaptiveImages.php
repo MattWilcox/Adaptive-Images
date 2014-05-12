@@ -1,9 +1,7 @@
 <?php
-/**
- * Resizes and serves images
- *
- * Based on Adaptive Images by Matt Wilcox
- */
+// Resizes and serves images
+//
+// Based on Adaptive Images by Matt Wilcox
 
 namespace alexsomeoddpilot;
 
@@ -77,9 +75,7 @@ class AdaptiveImages
         }
     }
 
-    /**
-     * helper function: Send headers and returns an image.
-     */
+    // helper function: Send headers and returns an image.
     private function sendImage($filename, $browserCache)
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -97,9 +93,7 @@ class AdaptiveImages
         exit();
     }
 
-    /**
-     * helper function: Create and send an image with an error message.
-     */
+    // helper function: Create and send an image with an error message.
     private function sendErrorImage($message)
     {
         $imageResource = ImageCreateTrueColor(800, 300);
@@ -124,5 +118,16 @@ class AdaptiveImages
         ImageDestroy($imageResource);
 
         exit();
+    }
+
+    // sharpen images function
+    private function findSharp($intOrig, $intFinal)
+    {
+        $intFinal = $intFinal * (750.0 / $intOrig);
+        $intA     = 52;
+        $intB     = -0.27810650887573124;
+        $intC     = .00047337278106508946;
+        $intRes   = $intA + $intB * $intFinal + $intC * $intFinal * $intFinal;
+        return max(round($intRes), 0);
     }
 }

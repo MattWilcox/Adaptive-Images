@@ -5,8 +5,10 @@
         {
             "name": "Alex Robertson",
             "email": "alex@someoddpilot.com"
-        }
+        },
     ],
+    "version": "2.0.1",
     "minimum-stability": "alpha",
-    "require": {}
+    "require": {},
+    "license": "Apache-2.0"
 }

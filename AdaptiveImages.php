@@ -3,7 +3,7 @@
 //
 // Based on Adaptive Images by Matt Wilcox
 
-namespace alexsomeoddpilot;
+namespace alexsomeoddpilot\AdaptiveImages;
 
 class AdaptiveImages
 {

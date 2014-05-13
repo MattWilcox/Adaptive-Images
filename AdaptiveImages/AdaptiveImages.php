@@ -261,6 +261,10 @@ class AdaptiveImages
     }
 
     // helper function: Send headers and returns an image.
+
+    /**
+     * @param integer $browserCache
+     */
     private function sendImage($filename, $browserCache)
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -279,6 +283,10 @@ class AdaptiveImages
     }
 
     // helper function: Create and send an image with an error message.
+
+    /**
+     * @param string $message
+     */
     private function sendErrorImage($message)
     {
         $imageResource = ImageCreateTrueColor(800, 300);
@@ -317,6 +325,11 @@ class AdaptiveImages
     }
 
     // refreshes the cached image if it's outdated
+
+    /**
+     * @param string $sourceFile
+     * @param string $cacheFile
+     */
     private function refreshCache($sourceFile, $cacheFile, $resolution)
     {
         if (file_exists($cacheFile)) {
@@ -332,6 +345,10 @@ class AdaptiveImages
     }
 
     // generates the given cache file for the given source file with the given resolution
+
+    /**
+     * @param string $sourceFile
+     */
     private function generateImage($sourceFile, $cacheFile, $resolution)
     {
         $extension = strtolower(pathinfo($sourceFile, PATHINFO_EXTENSION));

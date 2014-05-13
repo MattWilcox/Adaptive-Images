@@ -1,0 +1,10 @@
+inherit: true
+filter:
+    paths: [AdaptiveImages/*]
+    excluded_paths: [tests/*]
+before_commands:
+    - "composer install"
+tools:
+    php_code_coverage: true
+    php_cpd: true
+    php_analyzer: true

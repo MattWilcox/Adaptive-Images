@@ -358,7 +358,7 @@ class AdaptiveImages
             default:
                 $src = @ImageCreateFromJpeg($sourceFile);
                 // Enable interlancing (progressive JPG, smaller size file)
-                imageinterlace($dst, true);
+                imageinterlace($dst, 1);
                 break;
         }
 

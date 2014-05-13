@@ -1,0 +1,6 @@
+inherit: true
+filter:
+    paths: [AdaptiveImages/*]
+    excluded_paths: [tests/*]
+tools:
+    php_code_coverage: true

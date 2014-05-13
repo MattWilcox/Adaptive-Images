@@ -61,6 +61,61 @@ class AdaptiveImages
         $this->setupCache();
     }
 
+    public function getResolutions()
+    {
+        return $this->resolutions;
+    }
+
+    public function getCachePath()
+    {
+        return $this->cachePath;
+    }
+
+    public function getJpgQuality()
+    {
+        return $this->jpgQuality;
+    }
+
+    public function getSharpen()
+    {
+        return $this->sharpen;
+    }
+
+    public function getWatchCache()
+    {
+        return $this->watchCache;
+    }
+
+    public function getBrowserCache()
+    {
+        return $this->browserCache;
+    }
+
+    public function getDocumentRoot()
+    {
+        return $this->documentRoot;
+    }
+
+    public function getRequestedUri()
+    {
+        return $this->requestedUri;
+    }
+
+    public function getRequestedFile()
+    {
+        return $this->requestedFile;
+    }
+
+    public function getSourceFile()
+    {
+        return $this->sourceFile;
+    }
+
+    public function getResolution()
+    {
+        return $this->resolution;
+    }
+
     public function getImage()
     {
         // check if the file exists at all
@@ -180,11 +235,11 @@ class AdaptiveImages
     private function setupCache()
     {
         // does the $cachePath directory exist already?
-        if (!is_dir($this->documentRoot . "/" . $this->cachePath)) {
+        if (!is_dir($this->cachePath)) {
             // no, so make it
-            if (!mkdir($this->documentRoot . "/" . $this->cachePath, 0755, true)) {
+            if (!mkdir($this->cachePath, 0755, true)) {
                 // check again to protect against race conditions
-                if (!is_dir($this->documentRoot . "/" . $this->cachePath)) {
+                if (!is_dir($this->cachePath)) {
                     // uh-oh, failed to make that directory
                     $this->sendErrorImage(
                         "Failed to create cache directory at: " .

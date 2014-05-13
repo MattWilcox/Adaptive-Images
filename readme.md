@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/alexsomeoddpilot/Adaptive-Images.svg?branch=master)](https://travis-ci.org/alexsomeoddpilot/Adaptive-Images)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/alexsomeoddpilot/Adaptive-Images/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/alexsomeoddpilot/Adaptive-Images/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/alexsomeoddpilot/Adaptive-Images/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/alexsomeoddpilot/Adaptive-Images/?branch=master)
+
 # Adaptive Images
 
 Is a solution to automatically create, cache, and deliver device-appropriate versions of your website's content images. It does not require you to change your mark-up. It is intended for use with [Responsive Designs](http://www.abookapart.com/products/responsive-web-design) and to be combined with [Fluid Image](http://unstoppablerobotninja.com/entry/fluid-images/) techniques.

@@ -53,7 +53,10 @@ class AdaptiveImages
 
         // get all of the required data from the HTTP request
         $this->documentRoot  = $_SERVER['DOCUMENT_ROOT'];
-        $this->requestedUri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+
+        $requestedUri = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+        $this->requestedUri  = ($requestedUri) ? $requestedUri : "";
+
         $this->requestedFile = basename($this->requestedUri);
         $this->sourceFile    = $this->documentRoot . $this->requestedUri;
         $this->resolution    = false;
@@ -190,7 +193,7 @@ class AdaptiveImages
         }
 
         // if the requested URL starts with a slash, remove the slash
-        if (substr($this->requestedUri, 0, 1) == "/") {
+        if (substr($this->requestedUri, 0, 1) === "/") {
             $this->requestedUri = substr($this->requestedUri, 1);
         }
 
@@ -355,7 +358,7 @@ class AdaptiveImages
             default:
                 $src = @ImageCreateFromJpeg($sourceFile);
                 // Enable interlancing (progressive JPG, smaller size file)
-                ImageInterlace($dst, true);
+                imageinterlace($dst, true);
                 break;
         }
 

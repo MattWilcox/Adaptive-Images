@@ -136,7 +136,7 @@ class AdaptiveImages
             }
         }
 
-        $resolution = $this->getResolution();
+        $resolution = $this->findResolution();
 
         // if the requested URL starts with a slash, remove the slash
         if (substr($this->requestedUri, 0, 1) === "/") {
@@ -164,7 +164,7 @@ class AdaptiveImages
         $this->sendImage($file, $this->browserCache);
     }
 
-    private function getResolution()
+    private function findResolution()
     {
         /* Check to see if a valid cookie exists */
         if (isset($_COOKIE['resolution'])) {

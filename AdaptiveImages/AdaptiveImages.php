@@ -136,6 +136,36 @@ class AdaptiveImages
             }
         }
 
+        $resolution = $this->getResolution();
+
+        // if the requested URL starts with a slash, remove the slash
+        if (substr($this->requestedUri, 0, 1) === "/") {
+            $this->requestedUri = substr($this->requestedUri, 1);
+        }
+
+        // where might the cache file be?
+        $cacheFile = $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
+
+        // Use the resolution value as a path variable and check
+        // to see if an image of the same name exists at that path
+        if (file_exists($cacheFile)) {
+            // it exists cached at that size
+            // if cache watching is enabled, compare cache and source
+            // modified dates to ensure the cache isn't stale
+            if ($this->watchCache) {
+                $cacheFile = $this->refreshCache($this->sourceFile, $cacheFile, $resolution);
+            }
+
+            $this->sendImage($cacheFile, $this->browserCache);
+        }
+
+        // It exists as a source file, and it doesn't exist cached - lets make one:
+        $file = $this->generateImage($this->sourceFile, $cacheFile, $resolution);
+        $this->sendImage($file, $this->browserCache);
+    }
+
+    private function getResolution()
+    {
         /* Check to see if a valid cookie exists */
         if (isset($_COOKIE['resolution'])) {
             $cookieValue = $_COOKIE['resolution'];
@@ -192,30 +222,7 @@ class AdaptiveImages
                 min($this->resolutions) : max($this->resolutions);
         }
 
-        // if the requested URL starts with a slash, remove the slash
-        if (substr($this->requestedUri, 0, 1) === "/") {
-            $this->requestedUri = substr($this->requestedUri, 1);
-        }
-
-        // where might the cache file be?
-        $cacheFile = $this->cachePath . "/" . $resolution . "/" . $this->requestedUri;
-
-        // Use the resolution value as a path variable and check
-        // to see if an image of the same name exists at that path
-        if (file_exists($cacheFile)) {
-            // it exists cached at that size
-            // if cache watching is enabled, compare cache and source
-            // modified dates to ensure the cache isn't stale
-            if ($this->watchCache) {
-                $cacheFile = $this->refreshCache($this->sourceFile, $cacheFile, $resolution);
-            }
-
-            $this->sendImage($cacheFile, $this->browserCache);
-        }
-
-        // It exists as a source file, and it doesn't exist cached - lets make one:
-        $file = $this->generateImage($this->sourceFile, $cacheFile, $resolution);
-        $this->sendImage($file, $this->browserCache);
+        return $resolution;
     }
 
     private function breakpoint($resolution, $width, $breakpoints = array())

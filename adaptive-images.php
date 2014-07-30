@@ -10,21 +10,33 @@
    LEGAL:
    Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
-/* CONFIG ----------------------------------------------------------------------------------------------------------- */
+   PROJECT UPDATE ------------------------------------------------------------------------------------------------------ 
+   Version:   1.6.0
 
-$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+   Homepage:  http://porzelt.net
+   GitHub:    https://github.com/MaxMorgenstern/Adaptive-Images 
+
+   NOTE:
+   As the original project was not maintained by more than two years I added some changes that should resolve most of
+   the issues raised at github issue-section.
+   - Max
+
+/* CONFIG ----------------------------------------------------------------------------------------------------------- */
+$resolutions   = array(2560, 1920, 1440, 1382, 1024, 992, 768, 480);
+//$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
-$jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
+$jpg_quality   = 90; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = TRUE; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default)
+$debug_mode    = FALSE; // Write new Image dimentions into the stored image
 
 /* END CONFIG ----------------------------------------------------------------------------------------------------------
 ------------------------ Don't edit anything after this line unless you know what you're doing -------------------------
 --------------------------------------------------------------------------------------------------------------------- */
 
 /* get all of the required data from the HTTP request */
-$document_root  = $_SERVER['DOCUMENT_ROOT'];
+$document_root  = realpath($_SERVER['DOCUMENT_ROOT']);
 $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
@@ -34,15 +46,11 @@ $resolution     = FALSE;
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
-  return strpos($userAgent, 'mobile');
+  return !!strpos($userAgent, 'mobile');
 }
 
 /* Does the UA string indicate this is a mobile? */
-if(!is_mobile()){
-  $is_mobile = FALSE;
-} else {
-  $is_mobile = TRUE;
-}
+$is_mobile = is_mobile();
 
 // does the $cache_path directory exist already?
 if (!is_dir("$document_root/$cache_path")) { // no
@@ -52,6 +60,8 @@ if (!is_dir("$document_root/$cache_path")) { // no
       sendErrorImage("Failed to create cache directory at: $document_root/$cache_path");
     }
   }
+} elseif (!is_writable("$document_root/$cache_path")) { // yes - check if writeable
+    sendErrorImage("The cache directory is not writable: $document_root/$cache_path");
 }
 
 /* helper function: Send headers and returns an image. */
@@ -65,6 +75,7 @@ function sendImage($filename, $browser_cache) {
   header("Cache-Control: private, max-age=".$browser_cache);
   header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
   header('Content-Length: '.filesize($filename));
+  header("Last-Modified: ". gmdate('D, d M Y H:i:s', filemtime($filename)).' GMT'); 
   readfile($filename);
   exit();
 }
@@ -72,16 +83,12 @@ function sendImage($filename, $browser_cache) {
 /* helper function: Create and send an image with an error message. */
 function sendErrorImage($message) {
   /* get all of the required data from the HTTP request */
-  $document_root  = $_SERVER['DOCUMENT_ROOT'];
+  $document_root  = realpath($_SERVER['DOCUMENT_ROOT']);
   $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
   $requested_file = basename($requested_uri);
   $source_file    = $document_root.$requested_uri;
 
-  if(!is_mobile()){
-    $is_mobile = "FALSE";
-  } else {
-    $is_mobile = "TRUE";
-  }
+  $is_mobile = is_mobile();
 
   $im            = ImageCreateTrueColor(800, 300);
   $text_color    = ImageColorAllocate($im, 233, 14, 91);
@@ -131,12 +138,16 @@ function refreshCache($source_file, $cache_file, $resolution) {
 
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution) {
-  global $sharpen, $jpg_quality;
+  global $sharpen, $jpg_quality, $debug_mode;
 
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
   // Check the image dimensions
   $dimensions   = GetImageSize($source_file);
+  if ($dimensions === false) {
+    // Either an unsupported image type or not an image
+    sendErrorImage("Failed to read source image: $source_file");
+  }
   $width        = $dimensions[0];
   $height       = $dimensions[1];
 
@@ -172,6 +183,11 @@ function generateImage($source_file, $cache_file, $resolution) {
   }
   
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+  if($debug_mode){
+    // write a textstring with the dimensions
+    $color = imagecolorallocate($dst, 249, 4, 4); // ugly red 
+    imagestring( $dst, 10, 10, 10, $new_width."px / ".$new_height."px", $color);
+  }
   ImageDestroy($src);
 
   // sharpen the image?
@@ -300,6 +316,8 @@ if (!$resolution) {
   $resolution = $is_mobile ? min($resolutions) : max($resolutions);
 }
 
+$resolution = floor($resolution);
+
 /* if the requested URL starts with a slash, remove the slash */
 if(substr($requested_uri, 0,1) == "/") {
   $requested_uri = substr($requested_uri, 1);
@@ -313,7 +331,6 @@ if (file_exists($cache_file)) { // it exists cached at that size
   if ($watch_cache) { // if cache watching is enabled, compare cache and source modified dates to ensure the cache isn't stale
     $cache_file = refreshCache($source_file, $cache_file, $resolution);
   }
-
   sendImage($cache_file, $browser_cache);
 }
 

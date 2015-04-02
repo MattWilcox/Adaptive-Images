@@ -2,6 +2,12 @@ h1. Adaptive Images
 
 Is a solution to automatically create, cache, and deliver device-appropriate versions of your website's content images. It does not require you to change your mark-up. It is intended for use with "Responsive Designs":http://www.abookapart.com/products/responsive-web-design and to be combined with "Fluid Image":http://unstoppablerobotninja.com/entry/fluid-images/ techniques.
 
+h2. Project status
+
+This is an old project now, and still works fine with little need for new features (hence the lack of updates). That said; if you are building a new website I would *strongly recommend* looking into HTLM's new 'picture' tag, and the srcset and sizes properties now available on regular img tags. These were not available at the time of making AI, and in many cases these are more appropriate solutions today.
+
+That said, there are times when something like AI is still an appropriate solution, and it does still work as advertised.
+
 h2. Benefits
 
 * Ensures you and your visitors are not wasting bandwidth delivering images at a higher resolution than the vistor needs.

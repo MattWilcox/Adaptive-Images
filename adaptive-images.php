@@ -171,7 +171,10 @@ function generateImage($source_file, $cache_file, $resolution) {
     imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
   }
   
+  // invert the image to prevent atrifacts on white areas
+  imagefilter($src, IMG_FILTER_NEGATE);
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
+  imagefilter($dst, IMG_FILTER_NEGATE);
   ImageDestroy($src);
 
   // sharpen the image?

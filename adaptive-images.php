@@ -65,6 +65,7 @@ function sendImage($filename, $browser_cache) {
   header("Cache-Control: private, max-age=".$browser_cache);
   header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
   header('Content-Length: '.filesize($filename));
+  header("Last-Modified: ". gmdate('D, d M Y H:i:s', filemtime($filename)).' GMT'); 
   readfile($filename);
   exit();
 }

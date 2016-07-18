@@ -1,0 +1,23 @@
+{
+  "name": "mattwilcox/adaptive-images",
+  "description": "Adaptive Images is a solution to automatically create, cache, and deliver device-appropriate versions of your website’s content images.",
+  "keywords": ["images", "responsive", "adaptive", "assets", "optimization"],
+  "homepage": "http://adaptive-images.com/",
+  "version": "1.5.2",
+  "authors": [
+    {
+      "name": "Matt Wilcox",
+      "role": "Developer",
+      "homepage": "http://mattwilcox.net/"
+    }
+  ],
+  "license": [
+      "CC-BY-3.0"
+  ],
+  "support": {
+    "issues": "https://github.com/mattwilcox/Adaptive-Images/issues"
+  },
+  "autoload": {
+    "exclude-from-classmap": ["**"]
+  }
+}

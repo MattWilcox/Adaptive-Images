@@ -12,7 +12,13 @@
 
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(1382, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+/* Twitter Bootstrap Setup
+   NOTE: All relevant images have to be in folders named by their bootstrap span-size-classes. E.g. /img/span8/image.jpg
+         gerhard@kollinger.it */
+$column_widths = array(70, 60, 42);
+$gutter_widths = array(30, 20, 20);
+$resolutions   = array(5000, 1199, 979, 767, 479); // the resolution break-points to use (screen widths, in pixels)
+
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 75; // the quality of any generated JPGs on a scale of 0 to 100
 $sharpen       = TRUE; // Shrinking images can blur details, perform a sharpen on re-scaled images?
@@ -131,7 +137,7 @@ function refreshCache($source_file, $cache_file, $resolution) {
 
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution) {
-  global $sharpen, $jpg_quality;
+  global $sharpen, $jpg_quality, $resolutions, $column_widths, $gutter_widths;
 
   $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
 
@@ -139,6 +145,24 @@ function generateImage($source_file, $cache_file, $resolution) {
   $dimensions   = GetImageSize($source_file);
   $width        = $dimensions[0];
   $height       = $dimensions[1];
+
+  // Get column size
+  preg_match_all('#/span([0-9]+)/#', $source_file, $matches);
+  $span = isset($matches[1][0]) ? $matches[1][0] : FALSE;
+  if ( ! $span) {
+    return $source_file;
+  }
+
+  // Get column and gutter width
+  $resolutions_key = array_search($resolution, $resolutions);
+  if($resolutions_key === FALSE) {
+    return $source_file;
+  }
+  $column_width = $column_widths[$resolutions_key];
+  $gutter_width = isset($gutter_widths[$resolutions_key]) ? $gutter_widths[$resolutions_key] : 0;
+
+  // Get image width for column
+  $resolution = $column_width ? $span * $column_width + ($span - 1) * $gutter_width : $resolution;
 
   // Do we need to downscale the image?
   if ($width <= $resolution) { // no, because the width of the source image is already less than the client width

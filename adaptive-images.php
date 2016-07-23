@@ -97,6 +97,7 @@ function sendErrorImage($message) {
   ImageString($im, 3, 5, 165, "SOURCE FILE IS: $source_file", $text_color);
   ImageString($im, 3, 5, 185, "DEVICE IS MOBILE? $is_mobile", $text_color);
 
+  header("Status: 500 Internal Server Error");
   header("Cache-Control: no-store");
   header('Expires: '.gmdate('D, d M Y H:i:s', time()-1000).' GMT');
   header('Content-Type: image/jpeg');

@@ -30,7 +30,7 @@ $requested_file = basename($requested_uri);
 $source_file    = $document_root.$requested_uri;
 $resolution     = FALSE;
 
-/* Mobile detection 
+/* Mobile detection
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
@@ -38,11 +38,7 @@ function is_mobile() {
 }
 
 /* Does the UA string indicate this is a mobile? */
-if(!is_mobile()){
-  $is_mobile = FALSE;
-} else {
-  $is_mobile = TRUE;
-}
+$is_mobile = is_mobile();
 
 // does the $cache_path directory exist already?
 if (!is_dir("$document_root/$cache_path")) { // no
@@ -52,6 +48,10 @@ if (!is_dir("$document_root/$cache_path")) { // no
       sendErrorImage("Failed to create cache directory at: $document_root/$cache_path");
     }
   }
+}
+
+if (!is_writable("$document_root/$cache_path")) {
+    sendErrorImage("The cache directory is not writable: $document_root/$cache_path");
 }
 
 /* helper function: Send headers and returns an image. */
@@ -77,7 +77,7 @@ function sendErrorImage($message) {
   $requested_file = basename($requested_uri);
   $source_file    = $document_root.$requested_uri;
 
-  if(!is_mobile()){
+  if (!is_mobile()){
     $is_mobile = "FALSE";
   } else {
     $is_mobile = "TRUE";
@@ -133,12 +133,16 @@ function refreshCache($source_file, $cache_file, $resolution) {
 function generateImage($source_file, $cache_file, $resolution) {
   global $sharpen, $jpg_quality;
 
-  $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
-
   // Check the image dimensions
-  $dimensions   = GetImageSize($source_file);
-  $width        = $dimensions[0];
-  $height       = $dimensions[1];
+  $imagemeta    = GetImageSize($source_file);
+
+  if ($imagemeta === false) {
+    // Either an unsupported image type or not an image
+    sendErrorImage("Failed to read source image: $source_file");
+  }
+
+  $width        = $imagemeta[0];
+  $height       = $imagemeta[1];
 
   // Do we need to downscale the image?
   if ($width <= $resolution) { // no, because the width of the source image is already less than the client width
@@ -151,32 +155,30 @@ function generateImage($source_file, $cache_file, $resolution) {
   $new_height = ceil($new_width * $ratio);
   $dst        = ImageCreateTrueColor($new_width, $new_height); // re-sized image
 
-  switch ($extension) {
-    case 'png':
-      $src = @ImageCreateFromPng($source_file); // original image
-    break;
-    case 'gif':
-      $src = @ImageCreateFromGif($source_file); // original image
-    break;
-    default:
-      $src = @ImageCreateFromJpeg($source_file); // original image
-      ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
-    break;
+  $srcimageinfo = GetImageSize($source_file);
+  $src = ImageCreateFromString(file_get_contents($source_file));
+
+  if ($src === false) {
+    sendErrorImage("Failed to read source image: $source_file");
   }
 
-  if($extension=='png'){
+  if ($imagemeta[2] === IMAGETYPE_JPEG) {
+    ImageInterlace($dst, true); // Enable interlancing (progressive JPG, smaller size file)
+  }
+  elseif ($imagemeta[2] === IMAGETYPE_PNG && $imagemeta["bits"] > 1) {
+    // save alpha for png's that have the alpha channel
     imagealphablending($dst, false);
     imagesavealpha($dst,true);
     $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
     imagefilledrectangle($dst, 0, 0, $new_width, $new_height, $transparent);
   }
-  
+
   ImageCopyResampled($dst, $src, 0, 0, 0, 0, $new_width, $new_height, $width, $height); // do the resize in memory
   ImageDestroy($src);
 
   // sharpen the image?
   // NOTE: requires PHP compiled with the bundled version of GD (see http://php.net/manual/en/function.imageconvolution.php)
-  if($sharpen == TRUE && function_exists('imageconvolution')) {
+  if ($sharpen == TRUE && function_exists('imageconvolution')) {
     $intSharpness = findSharp($width, $new_width);
     $arrMatrix = array(
       array(-1, -2, -1),
@@ -186,39 +188,23 @@ function generateImage($source_file, $cache_file, $resolution) {
     imageconvolution($dst, $arrMatrix, $intSharpness, 0);
   }
 
-  $cache_dir = dirname($cache_file);
-
-  // does the directory exist already?
-  if (!is_dir($cache_dir)) { 
-    if (!mkdir($cache_dir, 0755, true)) {
-      // check again if it really doesn't exist to protect against race conditions
-      if (!is_dir($cache_dir)) {
-        // uh-oh, failed to make that directory
-        ImageDestroy($dst);
-        sendErrorImage("Failed to create cache directory: $cache_dir");
-      }
-    }
-  }
-
-  if (!is_writable($cache_dir)) {
-    sendErrorImage("The cache directory is not writable: $cache_dir");
-  }
-
   // save the new file in the appropriate path, and send a version to the browser
-  switch ($extension) {
-    case 'png':
-      $gotSaved = ImagePng($dst, $cache_file);
+  $wasSaved = false;
+
+  switch ($imagemeta[2]) {
+    case IMAGETYPE_PNG:
+      $wasSaved = ImagePng($dst, $cache_file);
     break;
-    case 'gif':
-      $gotSaved = ImageGif($dst, $cache_file);
+    case IMAGETYPE_GIF:
+      $wasSaved = ImageGif($dst, $cache_file);
     break;
     default:
-      $gotSaved = ImageJpeg($dst, $cache_file, $jpg_quality);
+      $wasSaved = ImageJpeg($dst, $cache_file, $jpg_quality);
     break;
   }
   ImageDestroy($dst);
 
-  if (!$gotSaved && !file_exists($cache_file)) {
+  if (!$wasSaved && !file_exists($cache_file)) {
     sendErrorImage("Failed to create image: $cache_file");
   }
 
@@ -227,7 +213,7 @@ function generateImage($source_file, $cache_file, $resolution) {
 
 // check if the file exists at all
 if (!file_exists($source_file)) {
-  header("Status: 404 Not Found");
+  header("Not Found", true, 404);
   exit();
 }
 
@@ -253,7 +239,7 @@ if (isset($_COOKIE['resolution'])) {
     $client_width  = (int) $cookie_data[0]; // the base resolution (CSS pixels)
     $total_width   = $client_width;
     $pixel_density = 1; // set a default, used for non-retina style JS snippet
-    if (@$cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
+    if (isset($cookie_data[1]) && $cookie_data[1]) { // the device's pixel density factor (physical pixels per CSS pixel)
       $pixel_density = $cookie_data[1];
     }
 
@@ -261,11 +247,11 @@ if (isset($_COOKIE['resolution'])) {
     $resolution = $resolutions[0]; // by default use the largest supported break-point
 
     // if pixel density is not 1, then we need to be smart about adapting and fitting into the defined breakpoints
-    if($pixel_density != 1) {
+    if ($pixel_density != 1) {
       $total_width = $client_width * $pixel_density; // required physical pixel width of the image
 
       // the required image width is bigger than any existing value in $resolutions
-      if($total_width > $resolutions[0]){
+      if ($total_width > $resolutions[0]){
         // firstly, fit the CSS size into a break point ignoring the multiplier
         foreach ($resolutions as $break_point) { // filter down
           if ($total_width <= $break_point) {
@@ -300,13 +286,11 @@ if (!$resolution) {
   $resolution = $is_mobile ? min($resolutions) : max($resolutions);
 }
 
-/* if the requested URL starts with a slash, remove the slash */
-if(substr($requested_uri, 0,1) == "/") {
-  $requested_uri = substr($requested_uri, 1);
-}
+/* trim any potential leading slashes */
+$requested_uri = ltrim($requested_uri, "/");
 
 /* whew might the cache file be? */
-$cache_file = $document_root."/$cache_path/$resolution/".$requested_uri;
+$cache_file = $document_root."/$cache_path/$resolution.".$requested_uri;
 
 /* Use the resolution value as a path variable and check to see if an image of the same name exists at that path */
 if (file_exists($cache_file)) { // it exists cached at that size

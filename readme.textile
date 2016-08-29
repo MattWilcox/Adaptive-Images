@@ -6,7 +6,7 @@ h2. Project status
 
 I am not maintaining this project any longer.
 
-This is an old project, and still works as intended, with little need for new features (hence the lack of updates). That said; if you are building a new website I would *strongly recommend* looking into HTLM's new 'picture' tag, and the srcset and sizes properties now available on regular img tags. These were not available at the time of making AI, have since become a standard, and in many cases these are more appropriate solutions today.
+This is an old project, and still works as intended, with little need for new features (hence the lack of updates). That said; if you are building a new website I would *strongly recommend* looking into HTML's new 'picture' tag, and the srcset and sizes properties now available on regular img tags. These were not available at the time of making AI, have since become a standard, and in many cases these are more appropriate solutions today.
 
 h2. Benefits
 

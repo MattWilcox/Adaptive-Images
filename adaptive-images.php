@@ -34,15 +34,11 @@ $resolution     = FALSE;
    NOTE: only used in the event a cookie isn't available. */
 function is_mobile() {
   $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
-  return strpos($userAgent, 'mobile');
+  return !!strpos($userAgent, 'mobile');
 }
 
 /* Does the UA string indicate this is a mobile? */
-if(!is_mobile()){
-  $is_mobile = FALSE;
-} else {
-  $is_mobile = TRUE;
-}
+$is_mobile = is_mobile();
 
 // does the $cache_path directory exist already?
 if (!is_dir("$document_root/$cache_path")) { // no
@@ -76,12 +72,6 @@ function sendErrorImage($message) {
   $requested_uri  = parse_url(urldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
   $requested_file = basename($requested_uri);
   $source_file    = $document_root.$requested_uri;
-
-  if(!is_mobile()){
-    $is_mobile = "FALSE";
-  } else {
-    $is_mobile = "TRUE";
-  }
 
   $im            = ImageCreateTrueColor(800, 300);
   $text_color    = ImageColorAllocate($im, 233, 14, 91);

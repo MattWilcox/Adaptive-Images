@@ -1,6 +1,6 @@
 <?php
 /* PROJECT INFO --------------------------------------------------------------------------------------------------------
-   Version:   1.6.0
+   Version:   1.5.2
    Changelog: http://adaptive-images.com/changelog.txt
 
    Homepage:  http://adaptive-images.com
@@ -10,15 +10,26 @@
    LEGAL:
    Adaptive Images by Matt Wilcox is licensed under a Creative Commons Attribution 3.0 Unported License.
 
+/* SCRIPT TO TEST USING BROWSER WIDTH INSTEAD OF WINDOW -----------------------------------------------------------------------------------------------------------
+<script nonce="<?php echo $token; ?>">
+    var w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0],
+    x = w.innerWidth || e.clientWidth || g.clientWidth,
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+document.cookie='resolution='+x+("devicePixelRatio" in window ? ","+devicePixelRatio : ",1")+'; path=/';
+</script>
+ */
 /* CONFIG ----------------------------------------------------------------------------------------------------------- */
 
-$resolutions   = array(2000, 1200, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
+$resolutions   = array(2000, 1800, 1600, 1400, 1200, 992, 768, 480); // the resolution break-points to use (screen widths, in pixels)
 /*
 break-points where images layout change.
 break-points will be used for images which match pattern -[xs|sm|md|lg]-[0-9]{2}.[jpe?g|gif|png]
 ie: image-md-50.jpg will be :
-    - half screen width on xs, sm & md screens
-    - full screen width on higher resolutions.
+    - half screen width on md & lg screens
+    - full screen width on lower resolutions.
 */
 $breakpoints   = array(
     'lg' => 1200,
@@ -28,7 +39,7 @@ $breakpoints   = array(
 );
 $cache_path    = "ai-cache"; // where to store the generated re-sized images. Specify from your document root!
 $jpg_quality   = 100; // the quality of any generated JPGs on a scale of 0 to 100
-$sharpen       = true; // Shrinking images can blur details, perform a sharpen on re-scaled images?
+$sharpen       = false; // Shrinking images can blur details, perform a sharpen on re-scaled images?
 $watch_cache   = true; // check that the adapted image isn't stale (ensures updated source images are re-cached)
 $browser_cache = 60*60*24*7*4; // How long the BROWSER cache should last (seconds, minutes, hours, days. 7days by default) - changed to 1 month
 date_default_timezone_set('UTC');
@@ -87,9 +98,6 @@ function sendImage($filename, $browser_cache)
     header('Expires: '.gmdate('D, d M Y H:i:s', time()+$browser_cache).' GMT');
     header('Last-Modified: '.date("F d Y H:i:s.", filemtime($filename))); // Ajout
     header('Content-Length: '.filesize($filename));
-    if (file_exists($filename)) {
-        file_put_contents('test.txt', filesize($filename) . "\n", FILE_APPEND);
-    }
     readfile($filename);
     exit();
 }
@@ -162,6 +170,7 @@ function refreshCache($source_file, $cache_file, $resolution)
 /* generates the given cache file for the given source file with the given resolution */
 function generateImage($source_file, $cache_file, $resolution)
 {
+    $debug = true;
     global $sharpen, $jpg_quality, $breakpoints;
 
     $extension = strtolower(pathinfo($source_file, PATHINFO_EXTENSION));
@@ -178,6 +187,9 @@ function generateImage($source_file, $cache_file, $resolution)
         if ($resolution >= $breakpoint) {
             $img_screen_ratio = $out[2] / 100;
         }
+        if($debug === true) {
+            file_put_contents('aaa.txt', '---- $source_file: ' . $source_file . "\n" . '$img_screen_ratio = ' . $img_screen_ratio . "\n" . '$width = ' . $width . "\n" . '$resolution = ' . $resolution . "\n\n", FILE_APPEND);
+        }
     }
 
   // Do we need to downscale the image?
@@ -191,6 +203,10 @@ function generateImage($source_file, $cache_file, $resolution)
     $new_width  = $resolution * $img_screen_ratio;
     $new_height = ceil($new_width * $ratio);
     $dst        = ImageCreateTrueColor($new_width, $new_height); // re-sized image
+
+    if($debug === true) {
+        file_put_contents('aaa.txt', 'RESIZE: ' . $source_file . ' TO ' . $new_width . ' X ' . $new_height . "\n\n", FILE_APPEND);
+    }
 
     switch ($extension) {
         case 'png':

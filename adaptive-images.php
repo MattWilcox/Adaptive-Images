@@ -38,11 +38,7 @@ function is_mobile() {
 }
 
 /* Does the UA string indicate this is a mobile? */
-if(!is_mobile()){
-  $is_mobile = FALSE;
-} else {
-  $is_mobile = TRUE;
-}
+$is_mobile = is_mobile());
 
 // does the $cache_path directory exist already?
 if (!is_dir("$document_root/$cache_path")) { // no
